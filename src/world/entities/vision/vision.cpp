@@ -152,83 +152,86 @@ void Vision::FIRAVisionPackets(){
             continue;
         }
 
-        // Iterate received vision frame
-        if(environmentData.has_frame()) {
-            // Lock mutex for write
-            _dataMutex.lockForWrite();
+        // If no frame is present, skip to next datagram
+        if(!environmentData.has_frame()) {
+            continue;
+        }
 
-            // Clear objects control
-            clearObjectsControl();
+        // Lock mutex for write
+        _dataMutex.lockForWrite();
 
-            // Take frame
-            fira_message::Frame frame = environmentData.frame();
+        // Clear objects control
+        clearObjectsControl();
 
-            // Parse ball
-            if(frame.has_ball()) {
-                _ballObject->updateObject(1.0f, Position(true, frame.ball().x(), frame.ball().y()));
-            }
-            else {
-                _ballObject->updateObject(0.0f, Position(false, 0.0, 0.0));
-            }
+        // Take frame
+        fira_message::Frame frame = environmentData.frame();
 
-            // Parse blue robots
-            for(int i = 0; i < frame.robots_blue_size(); i++) {
-                // Take robot
-                fira_message::Robot robot = frame.robots_blue(i);
+        // Parse ball
+        if(frame.has_ball()) {
+            _ballObject->updateObject(1.0f, Position(true, frame.ball().x(), frame.ball().y()));
+        }
+        else {
+            _ballObject->updateObject(0.0f, Position(false, 0.0, 0.0));
+        }
 
-                // Take id
-                quint8 robotId = robot.robot_id();
+        // Parse blue robots
+        for(int i = 0; i < frame.robots_blue_size(); i++) {
+            // Take robot
+            fira_message::Robot robot = frame.robots_blue(i);
 
-                // Get object
-                Object *robotObject = _objects.value(VSSRef::Color::BLUE)->value(robotId);
-                robotObject->updateObject(1.0f, Position(true, robot.x(), robot.y()), Angle(true, robot.orientation()));
+            // Take id
+            quint8 robotId = robot.robot_id();
 
-                // Update control to true
-                _objectsControl.value(VSSRef::Color::BLUE)->insert(robotId, true);
-            }
+            // Get object
+            Object *robotObject = _objects.value(VSSRef::Color::BLUE)->value(robotId);
+            robotObject->updateObject(1.0f, Position(true, robot.x(), robot.y()), Angle(true, robot.orientation()));
 
-            // Parse yellow robots
-            for(int i = 0; i < frame.robots_yellow_size(); i++) {
-                // Take robot
-                fira_message::Robot robot = frame.robots_yellow(i);
+            // Update control to true
+            _objectsControl.value(VSSRef::Color::BLUE)->insert(robotId, true);
+        }
 
-                // Take id
-                quint8 robotId = robot.robot_id();
+        // Parse yellow robots
+        for(int i = 0; i < frame.robots_yellow_size(); i++) {
+            // Take robot
+            fira_message::Robot robot = frame.robots_yellow(i);
 
-                // Get object
-                Object *robotObject = _objects.value(VSSRef::Color::YELLOW)->value(robotId);
-                robotObject->updateObject(1.0f, Position(true, robot.x(), robot.y()), Angle(true, robot.orientation()));
+            // Take id
+            quint8 robotId = robot.robot_id();
 
-                // Update control to true
-                _objectsControl.value(VSSRef::Color::YELLOW)->insert(robotId, true);
-            }
+            // Get object
+            Object *robotObject = _objects.value(VSSRef::Color::YELLOW)->value(robotId);
+            robotObject->updateObject(1.0f, Position(true, robot.x(), robot.y()), Angle(true, robot.orientation()));
 
-            // Parse robots that didn't appeared
-            for(int i = VSSRef::Color::BLUE; i <= VSSRef::Color::YELLOW; i++) {
-                // Take control hash
-                QHash<quint8, bool> *idsControl = _objectsControl.value(VSSRef::Color(i));
+            // Update control to true
+            _objectsControl.value(VSSRef::Color::YELLOW)->insert(robotId, true);
+        }
 
-                // Take ids list and iterate on it
-                QList<quint8> idList = idsControl->keys();
-                QList<quint8>::iterator it;
+        // Parse robots that didn't appeared
+        for(int i = VSSRef::Color::BLUE; i <= VSSRef::Color::YELLOW; i++) {
+            // Take control hash
+            QHash<quint8, bool> *idsControl = _objectsControl.value(VSSRef::Color(i));
 
-                for(it = idList.begin(); it != idList.end(); it++) {
-                    // If not updated (== false)
-                    if(idsControl->value((*it)) == false) {
-                        // Take object
-                        Object *robotObject = _objects.value(VSSRef::Color(i))->value((*it));
+            // Take ids list and iterate on it
+            QList<quint8> idList = idsControl->keys();
+            QList<quint8>::iterator it;
 
-                        // Update it with invalid values
-                        robotObject->updateObject(0.0f, Position(false, 0.0, 0.0), Angle(false, 0.0));
-                    }
+            for(it = idList.begin(); it != idList.end(); it++) {
+                // If not updated (== false)
+                if(idsControl->value((*it)) == false) {
+                    // Take object
+                    Object *robotObject = _objects.value(VSSRef::Color(i))->value((*it));
+
+                    // Update it with invalid values
+                    robotObject->updateObject(0.0f, Position(false, 0.0, 0.0), Angle(false, 0.0));
                 }
             }
-
-            // Release mutex
-            _dataMutex.unlock();
-
-            emit visionUpdated();
         }
+
+        // Release mutex
+        _dataMutex.unlock();
+
+        emit visionUpdated();
+        
     }
 }
 
