@@ -1,5 +1,11 @@
 #!/bin/bash
 
-xhost +
-docker run -e DISPLAY=$DISPLAY  --network=host -it vssreferee
-xhost -
+docker build . -t vssreferee
+
+docker run -it --rm \
+    --name vssreferee \
+    -e DISPLAY \
+    -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+    -v $XAUTHORITY:/root/.Xauthority:ro \
+    --network=host \
+    vssreferee
