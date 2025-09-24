@@ -74,6 +74,7 @@ set(SOURCES
     src/utils/exithandler/exithandler.cpp
     src/utils/text/text.cpp
     src/utils/timer/timer.cpp
+    src/utils/timer/simulationtime.cpp
     src/world/entities/referee/checkers/ballplay/checker_ballplay.cpp
     src/world/entities/referee/checkers/checker.cpp
     src/world/entities/referee/checkers/goalie/checker_goalie.cpp

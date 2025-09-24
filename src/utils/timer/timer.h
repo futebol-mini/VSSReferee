@@ -25,8 +25,8 @@ private:
     //timespec _time1;
     //timespec _time2;
 
-    std::chrono::high_resolution_clock::time_point _time1;
-    std::chrono::high_resolution_clock::time_point _time2;
+  uint32_t _time1;
+  uint32_t _time2;
 };
 
 #endif // TIMER_H
