@@ -27,11 +27,26 @@ set(CMAKE_UIC_DIR ${CMAKE_BINARY_DIR}/tmp/moc)
 set(CMAKE_RCC_DIR ${CMAKE_BINARY_DIR}/tmp/rc)
 
 # Compile protobuf files
-file(GLOB PROTO_FILES "include/proto/*.proto")
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+file(GLOB PROTO_FILES "proto/include/*.proto")
+# protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/proto_output/include)
+
+add_library(proto_msgs)
+
+protobuf_generate(
+    TARGET proto_msgs
+    LANGUAGE cpp
+    IMPORT_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/proto/include
+    PROTOC_OUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/proto_output/include
+    APPEND_PATH
+    PROTOS ${PROTO_FILES}
+)
+
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_BINARY_DIR}/proto_output
 )
 
 # Set definitions
@@ -75,7 +90,6 @@ set(SOURCES
     src/world/entities/vision/filters/kalman/state/kalmanstate.cpp
     src/world/entities/vision/vision.cpp
     src/world/world.cpp
-    ${PROTO_SRCS}
 )
 
 # UI files
@@ -96,6 +110,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE include src)
 
 # Link libraries
 target_link_libraries(${PROJECT_NAME}
+    proto_msgs
     Qt5::Core
     Qt5::Gui
     Qt5::Widgets
