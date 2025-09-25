@@ -30,19 +30,19 @@ class SimulationTime {
      * object stored in the static field.
      */
     static std::shared_ptr<SimulationTime> GetInstance();
-    /**
-     * Finally, any singleton should define some business logic, which can be
-     * executed on its instance.
-     */
 
+    /**
+     * @brief Update the current reference of simulation time
+     *
+     * @param time_step Last received time step from simulation
+     *
+     * @note The function update should be only called ONCE in code, as it's not thread safe
+     */
     void update(uint64_t time_step);
 
     uint64_t now();
 
   private:
-    // timespec _time1;
-    // timespec _time2;
-    // static std::shared_ptr<SimulationTime> pinstance_;
     static std::mutex mutex_;
 
     SimulationTime() = default;
