@@ -7,13 +7,14 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     build-essential \
     freeglut3-dev \
     protobuf-compiler \
-    libprotobuf-dev
+    libprotobuf-dev \
+    cmake
 
 COPY . /opt/vssreferee
 
 WORKDIR /opt/vssreferee/build
 
-RUN qmake .. && make -j4
+RUN cmake .. && make -j4
 
 WORKDIR /opt/vssreferee/bin
 

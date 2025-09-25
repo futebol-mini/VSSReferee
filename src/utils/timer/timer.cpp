@@ -1,49 +1,64 @@
 #include "timer.h"
+#include "simulationtime.h"
 
 #include <QDateTime>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
-Timer::Timer() {
+const uint32_t WEBOTS_TIMESTEP_US = 10'000;
+
+const double MICRO_TO_SECONDS = 1e-6;
+const double MICRO_TO_MILLISECONDS = 1e-3;
+
+uint32_t Timer::now_provider() {
+    switch (this->_provider) {
+    case Timer::Provider::WALL:
+        return std::chrono::duration_cast<std::chrono::microseconds>(
+                   std::chrono::high_resolution_clock::now().time_since_epoch())
+            .count();
+    case Timer::Provider::SIMULATION:
+        return SimulationTime::GetInstance()->now() * WEBOTS_TIMESTEP_US;
+    }
+
+    return 0;
+}
+
+Timer::Timer(Timer::Provider provider)
+    : _provider(provider), _time1_us(now_provider()), _time2_us(now_provider()) {
     // Updating time1 and time2 with actual time
-    _time1 = std::chrono::high_resolution_clock::now();
-    _time2 = std::chrono::high_resolution_clock::now();
 }
 
 void Timer::start() {
     // Updating time1 with last time
-    _time1 = std::chrono::high_resolution_clock::now();
+    _time1_us = now_provider();
 }
 
 void Timer::stop() {
     // Updating time2 with last time
-    _time2 = std::chrono::high_resolution_clock::now();
+    _time2_us = now_provider();
 }
 
-double Timer::getSeconds() {
-    return (getNanoSeconds() / 1E9);
-}
+double Timer::getSeconds() { return (getMicroSeconds() * MICRO_TO_SECONDS); };
 
-double Timer::getMiliSeconds() {
-    return (getNanoSeconds() / 1E6);
-}
+double Timer::getMiliSeconds() { return (getMicroSeconds() * MICRO_TO_MILLISECONDS); };
 
 double Timer::getMicroSeconds() {
-    return (getNanoSeconds() / 1E3);
-}
 
-double Timer::getNanoSeconds() {
-    auto passedTime = std::chrono::duration_cast<std::chrono::nanoseconds>(_time2 - _time1);
-    return (passedTime.count());
+    double passedTime = ((double)_time2_us) - ((double)_time1_us);
+
+    return passedTime;
 }
 
 QString Timer::getActualTime() {
-    time_t now = time(0);
-    tm *ltm = localtime(&now);
 
-    char str[100];
-    sprintf(str, "%04d-%02d-%02d|%02d:%02d:%02d", 1900+ltm->tm_year, 1+ltm->tm_mon, ltm->tm_mday,
-                                                  ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
 
-    QString actualTime(str);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d|%H:%M:%S");
+
+    QString actualTime(ss.str().c_str());
 
     return actualTime;
 }
