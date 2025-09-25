@@ -3,14 +3,14 @@
 
 #include <include/packet.pb.h>
 
-Vision::Vision(Constants *constants) : Entity(ENT_VISION) {
-    // Taking constants
-    _constants = constants;
+Vision::Vision(Constants *constants)
+    : Entity(ENT_VISION), _constants(constants),
+      _isFIRAVision(getConstants()->isFIRAVision()) {
 
-    // Taking network data
-    _visionAddress = getConstants()->visionAddress();
-    _visionPort = getConstants()->visionPort();
-    _isFIRAVision = getConstants()->isFIRAVision();
+    _visionAddress = _isFIRAVision ? getConstants()->firaVisionAddress()
+                                   : getConstants()->visionAddress();
+    _visionPort = _isFIRAVision ? getConstants()->firaVisionPort()
+                                : getConstants()->visionPort();
 
     // Init objects
     initObjects();
