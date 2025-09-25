@@ -1,0 +1,37 @@
+name: cpp-linter-all
+on:
+  pull_request:
+    branches: [main, master, develop]
+    paths: ['**.c', '**.cpp', '**.h', '**.hpp', '**.cxx', '**.hxx', '**.cc', '**.hh', '**CMakeLists.txt', 'meson.build', '**.cmake']
+  push:
+    branches: [main, master, develop]
+    paths: ['**.c', '**.cpp', '**.h', '**.hpp', '**.cxx', '**.hxx', '**.cc', '**.hh', '**CMakeLists.txt', 'meson.build', '**.cmake']
+
+jobs:
+  cpp-linter:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libc6 build-essential cmake qtbase5-dev qt5-qmake libqt5opengl5-dev libprotobuf-dev mesa-common-dev libglu1-mesa-dev protobuf-compiler
+
+      - name: Generate build files
+        run: mkdir build && cd build && cmake ..
+        # ... optionally setup build env to create a compilation database
+
+      - uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          style: ''  # disable clang-format checks.
+          tidy-checks: '' # Use .clang-tidy config file.
+          step-summary: true
+          thread-comments: true
+          no-lgtm: false
+          files-changed-only: false
+
+      # - name: Fail fast?!
+      #   if: steps.linter.outputs.clang-tidy-checks-failed > 0
+      #   run: exit 1
