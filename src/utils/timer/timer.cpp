@@ -11,18 +11,21 @@ const uint32_t WEBOTS_TIMESTEP_US = 10'000;
 const double MICRO_TO_SECONDS = 1e-6;
 const double MICRO_TO_MILLISECONDS = 1e-3;
 
-#define SIM_TIME true
-
-uint32_t now_provider() {
-    if (SIM_TIME)
-        return SimulationTime::GetInstance()->now() * WEBOTS_TIMESTEP_US;
-    else
+uint32_t Timer::now_provider() {
+    switch (this->_provider) {
+    case Timer::Provider::WALL:
         return std::chrono::duration_cast<std::chrono::microseconds>(
                    std::chrono::high_resolution_clock::now().time_since_epoch())
             .count();
+    case Timer::Provider::SIMULATION:
+        return SimulationTime::GetInstance()->now() * WEBOTS_TIMESTEP_US;
+    }
+
+    return 0;
 }
 
-Timer::Timer() : _time1_us(now_provider()), _time2_us(now_provider()) {
+Timer::Timer(Timer::Provider provider)
+    : _provider(provider), _time1_us(now_provider()), _time2_us(now_provider()) {
     // Updating time1 and time2 with actual time
 }
 

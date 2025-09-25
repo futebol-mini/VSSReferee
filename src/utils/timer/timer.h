@@ -5,8 +5,14 @@
 #include <chrono>
 
 class Timer {
+
+    enum Provider {
+        WALL,      //< Wall clock as reference
+        SIMULATION //< Simulation clock as reference
+    };
+
   public:
-    Timer();
+    Timer(Provider provider = Provider::SIMULATION);
 
     // Timer control
     void start();
@@ -19,7 +25,10 @@ class Timer {
     static QString getActualTime();
     static qint64 systemTime();
 
+    uint32_t now_provider();
+
   private:
+    Provider _provider;
     // timespec _time1;
     // timespec _time2;
 
