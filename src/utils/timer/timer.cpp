@@ -3,6 +3,8 @@
 
 #include <QDateTime>
 #include <chrono>
+#include <iomanip>
+#include <sstream>
 
 const uint32_t WEBOTS_TIMESTEP_US = 10'000;
 
