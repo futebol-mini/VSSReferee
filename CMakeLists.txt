@@ -28,7 +28,6 @@ set(CMAKE_RCC_DIR ${CMAKE_BINARY_DIR}/tmp/rc)
 
 # Compile protobuf files
 file(GLOB PROTO_FILES "proto/include/*.proto")
-# protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/proto_output/include)
 
@@ -45,7 +44,6 @@ protobuf_generate(
 
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_BINARY_DIR}/proto_output
 )
 
