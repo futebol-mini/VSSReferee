@@ -1,4 +1,5 @@
 #include "vision.h"
+#include "src/utils/timer/simulationtime.h"
 
 #include <include/packet.pb.h>
 
@@ -18,7 +19,7 @@ Vision::Vision(Constants *constants) : Entity(ENT_VISION) {
 Vision::~Vision() {
     deleteObjects();
 }
-    
+
 void Vision::initialization() {
     // Binding and connecting in network
     bindAndConnect();
@@ -163,6 +164,8 @@ void Vision::FIRAVisionPackets(){
         // Clear objects control
         clearObjectsControl();
 
+        SimulationTime::GetInstance()->update(environmentData.step());
+
         // Take frame
         fira_message::Frame frame = environmentData.frame();
 
@@ -231,7 +234,6 @@ void Vision::FIRAVisionPackets(){
         _dataMutex.unlock();
 
         emit visionUpdated();
-        
     }
 }
 

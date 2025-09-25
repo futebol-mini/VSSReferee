@@ -3,7 +3,6 @@
 #define SIMULATION_TIME_H
 
 #include <QString>
-#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <mutex>
@@ -14,14 +13,16 @@ class SimulationTime {
      * Singletons should not be cloneable.
      */
     SimulationTime(SimulationTime &other) = delete;
-
-    SimulationTime() = default;
-    ~SimulationTime() = default;
+    SimulationTime(SimulationTime &&other) = delete;
 
     /**
      * Singletons should not be assignable.
      */
     void operator=(const SimulationTime &) = delete;
+    void operator=(const SimulationTime &&) = delete;
+
+    ~SimulationTime() = default;
+
     /**
      * This is the static method that controls the access to the singleton
      * instance. On the first run, it creates a singleton object and places it
@@ -34,9 +35,9 @@ class SimulationTime {
      * executed on its instance.
      */
 
-    void update(uint32_t time);
+    void update(uint64_t time_step);
 
-    uint32_t now();
+    uint64_t now();
 
   private:
     // timespec _time1;
@@ -44,8 +45,10 @@ class SimulationTime {
     // static std::shared_ptr<SimulationTime> pinstance_;
     static std::mutex mutex_;
 
-    uint32_t last_time_{0};
-    uint32_t elapsed_time_{0};
+    SimulationTime() = default;
+
+    uint64_t last_time_step_{0};
+    uint64_t elapsed_time_steps_{0};
 
   protected:
 };

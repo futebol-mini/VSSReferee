@@ -1,4 +1,6 @@
 #include "fieldview.h"
+#include <iomanip>
+#include <sstream>
 
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #define FIELD_COLOR 0.208, 0.208, 0.208, 1.0
@@ -367,11 +369,17 @@ void FieldView::drawStuckedTime() {
 
     // Get stucked ball time and adjust y by a factor
     float factor = (getVision()->getBallPosition().y() >= 0.0) ? -1.0 : 1.0;
-    char str[8];
-    sprintf(str, "%.1fs", _stuckedBallTime);
+
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(1) << _stuckedBallTime;
+    std::string str = stream.str();
 
     // Draw text on screen
-    drawText(QVector2D(getVision()->getBallPosition().x() * 1000.0 + getConstants()->ballRadius(), getVision()->getBallPosition().y() * 1000.0 + (factor * (40.0 - getConstants()->ballRadius()))), 0.0, 40.0, QString(str));
+    drawText(QVector2D(getVision()->getBallPosition().x() * 1000.0 +
+                           getConstants()->ballRadius(),
+                       getVision()->getBallPosition().y() * 1000.0 +
+                           (factor * (40.0 - getConstants()->ballRadius()))),
+             0.0, 40.0, QString(str.c_str()));
 }
 
 void FieldView::resetView() {

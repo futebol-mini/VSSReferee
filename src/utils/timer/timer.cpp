@@ -2,40 +2,44 @@
 #include "simulationtime.h"
 
 #include <QDateTime>
+#include <chrono>
 
-const auto TICKS_TO_MILLISECONDS = 10;
+const uint32_t WEBOTS_TIMESTEP_MS = 10;
 
-Timer::Timer() {
+const double MILLI_TO_SECONDS = 1E-3;
+
+#define SIM_TIME true
+
+uint32_t now_provider() {
+    if (SIM_TIME)
+        return SimulationTime::GetInstance()->now() * WEBOTS_TIMESTEP_MS;
+    else
+        return std::chrono::duration_cast<std::chrono::milliseconds>(
+                   std::chrono::high_resolution_clock::now().time_since_epoch())
+            .count();
+}
+
+Timer::Timer() : _time1_ms(now_provider()), _time2_ms(now_provider()) {
     // Updating time1 and time2 with actual time
-    _time1 = SimulationTime::GetInstance()->now();
-    _time2 = SimulationTime::GetInstance()->now();
 }
 
 void Timer::start() {
     // Updating time1 with last time
-    _time1 = SimulationTime::GetInstance()->now();
+    _time1_ms = now_provider();
 }
 
 void Timer::stop() {
     // Updating time2 with last time
-    _time2 = SimulationTime::GetInstance()->now();
+    _time2_ms = now_provider();
 }
 
-double Timer::getSeconds() {
-    return (getNanoSeconds() / 1E9);
-}
+double Timer::getSeconds() { return (getMiliSeconds() * MILLI_TO_SECONDS); }
 
 double Timer::getMiliSeconds() {
-    return (getNanoSeconds() / 1E6);
-}
 
-double Timer::getMicroSeconds() {
-    return (getNanoSeconds() / 1E3);
-}
+    double passedTime = ((double)_time2_ms) - ((double)_time1_ms);
 
-double Timer::getNanoSeconds() {
-    double passedTime = _time2 - _time1;
-    return (passedTime * TICKS_TO_MILLISECONDS / 1E3);
+    return passedTime;
 }
 
 QString Timer::getActualTime() {
