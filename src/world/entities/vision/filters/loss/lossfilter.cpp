@@ -2,34 +2,25 @@
 
 float LossFilter::_filterTime = 300;
 
-LossFilter::LossFilter() {
-    _isInitialized = false;
-}
+LossFilter::LossFilter() = default;
 
 void LossFilter::startLoss() {
     _isInitialized = true;
     _timer.start();
 }
 
-bool LossFilter::isInitialized() {
-    return _isInitialized;
-}
+bool LossFilter::isInitialized() { return _isInitialized; }
 
 bool LossFilter::checkLoss() {
     _timer.stop();
 
-    if(_timer.getMiliSeconds() >= getLossTime()) {
+    if (_timer.getMiliSeconds() >= getLossTime()) {
         return true;
-    }
-    else {
+    } else {
         return false;
     }
 }
 
-float LossFilter::getLossTime() {
-    return _filterTime;
-}
+float LossFilter::getLossTime() { return _filterTime; }
 
-void LossFilter::setLossTime(float lossTime) {
-    _filterTime = lossTime;
-}
+void LossFilter::setLossTime(float lossTime) { _filterTime = lossTime; }

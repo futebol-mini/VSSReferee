@@ -3,9 +3,10 @@
 #include <src/world/entities/vision/filters/loss/lossfilter.h>
 #include <src/world/entities/vision/filters/noise/noisefilter.h>
 
-Constants::Constants(QString fileName) {
+#include <utility>
+
+Constants::Constants(QString fileName) : _fileName(std::move(fileName)) {
     // Taking fileName
-    _fileName = fileName;
 
     // Opening and reading file content in buffer
     _file.setFileName(_fileName);
@@ -33,7 +34,8 @@ void Constants::readEntityConstants() {
 
     // Filling vars
     _threadFrequency = threadMap["threadFrequency"].toInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded threadFrequency: " + std::to_string(_threadFrequency)) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded threadFrequency: " + std::to_string(_threadFrequency)) + '\n';
 }
 
 void Constants::readNetworkConstants() {
@@ -42,7 +44,8 @@ void Constants::readNetworkConstants() {
 
     // Filling vars
     _networkInterface = networkMap["networkInterface"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded network interface: " + _networkInterface.toStdString()) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded network interface: " + _networkInterface.toStdString()) + '\n';
 }
 
 void Constants::readRefereeConstants() {
@@ -51,13 +54,16 @@ void Constants::readRefereeConstants() {
 
     // Filling vars
     _refereeAddress = refereeMap["refereeAddress"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded refereeAddress: '" + _refereeAddress.toStdString() + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded refereeAddress: '" + _refereeAddress.toStdString() + "'\n");
 
     _refereePort = refereeMap["refereePort"].toUInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded refereePort: " + std::to_string(_refereePort)) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded refereePort: " + std::to_string(_refereePort)) + '\n';
 
     _transitionTime = refereeMap["transitionTime"].toFloat();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded transitionTime: '" + std::to_string(_transitionTime) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded transitionTime: '" + std::to_string(_transitionTime) + "'\n");
 
     // Game params
     // Taking fouls mapping in json
@@ -65,19 +71,25 @@ void Constants::readRefereeConstants() {
 
     // Filling vars
     _gameType = gameParamsMap["gameType"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded gameType: '" + _gameType.toStdString() + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded gameType: '" + _gameType.toStdString() + "'\n");
 
     _ballRadius = gameParamsMap["ballRadius"].toFloat();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded ballRadius: '" + std::to_string(_ballRadius) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded ballRadius: '" + std::to_string(_ballRadius) + "'\n");
 
     _robotLength = gameParamsMap["robotLength"].toFloat();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded robotLength: '" + std::to_string(_robotLength) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded robotLength: '" + std::to_string(_robotLength) + "'\n");
 
     _halfTime = gameParamsMap["halfTime"].toFloat();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded halfTime: '" + std::to_string(_halfTime) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded halfTime: '" + std::to_string(_halfTime) + "'\n");
 
     _overtimeHalfTime = gameParamsMap["overtimeHalfTime"].toFloat();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded overtimeHalfTime: '" + std::to_string(_overtimeHalfTime) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded overtimeHalfTime: '" + std::to_string(_overtimeHalfTime) +
+                            "'\n");
 
     // Fouls
     // Taking fouls mapping in json
@@ -85,20 +97,28 @@ void Constants::readRefereeConstants() {
 
     // Filling vars
     _ballMinSpeedForStuck = foulsMap["ballMinSpeedForStuck"].toFloat();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded ballMinSpeedForStuck: '" + std::to_string(_ballMinSpeedForStuck) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded ballMinSpeedForStuck: '" +
+                            std::to_string(_ballMinSpeedForStuck) + "'\n");
 
     _stuckedBallTime = foulsMap["stuckedBallTime"].toFloat();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded stuckedBallTime: '" + std::to_string(_stuckedBallTime) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded stuckedBallTime: '" + std::to_string(_stuckedBallTime) + "'\n");
 
     _ballInAreaMaxTime = foulsMap["ballInAreaMaxTime"].toFloat();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded ballInAreaMaxTime: '" + std::to_string(_ballInAreaMaxTime) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded ballInAreaMaxTime: '" + std::to_string(_ballInAreaMaxTime) +
+                            "'\n");
 
     _useRefereeSuggestions = foulsMap["useRefereeSuggestions"].toBool();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded useRefereeSuggestions: '" + std::to_string(_useRefereeSuggestions) + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded useRefereeSuggestions: '" +
+                            std::to_string(_useRefereeSuggestions) + "'\n");
 
     _maintainSpeedAtSuggestions = foulsMap["maintainSpeedAtSuggestions"].toBool();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded maintainSpeedAtSuggestions: '" + std::to_string(_maintainSpeedAtSuggestions) + "'\n");
-
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded maintainSpeedAtSuggestions: '" +
+                            std::to_string(_maintainSpeedAtSuggestions) + "'\n");
 }
 
 void Constants::readVisionConstants() {
@@ -107,34 +127,42 @@ void Constants::readVisionConstants() {
 
     // Filling vars
     _visionAddress = visionMap["visionAddress"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded visionAddress: '" + _visionAddress.toStdString() + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded visionAddress: '" + _visionAddress.toStdString() + "'\n");
 
     _visionPort = visionMap["visionPort"].toUInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded visionPort: " + std::to_string(_visionPort)) + '\n';
-    
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded visionPort: " + std::to_string(_visionPort)) + '\n';
+
     _firaVisionAddress = visionMap["firaVisionAddress"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded firaVisionAddress: '" + _firaVisionAddress.toStdString() + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded firaVisionAddress: '" + _firaVisionAddress.toStdString() +
+                            "'\n");
 
     _firaVisionPort = visionMap["firaVisionPort"].toUInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded firaVisionPort: " + std::to_string(_firaVisionPort)) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded firaVisionPort: " + std::to_string(_firaVisionPort)) + '\n';
 
     _isFIRAVision = visionMap["isFIRAVision"].toUInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded isFIRAVision: " + std::to_string(_isFIRAVision)) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded isFIRAVision: " + std::to_string(_isFIRAVision)) + '\n';
 
     // Filter constants
     QVariantMap filterMap = visionMap["filters"].toMap();
 
     _useKalman = filterMap["useKalman"].toBool();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded useKalman: " + std::to_string(_useKalman)) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded useKalman: " + std::to_string(_useKalman)) + '\n';
 
     _noiseTime = filterMap["noiseTime"].toInt();
     NoiseFilter::setNoiseTime(_noiseTime);
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded noiseTime: " + std::to_string(_noiseTime)) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded noiseTime: " + std::to_string(_noiseTime)) + '\n';
 
     _lossTime = filterMap["lossTime"].toInt();
     LossFilter::setLossTime(_lossTime);
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded lossTime: " + std::to_string(_lossTime)) + '\n';
-
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded lossTime: " + std::to_string(_lossTime)) + '\n';
 }
 
 void Constants::readReplacerConstants() {
@@ -143,17 +171,20 @@ void Constants::readReplacerConstants() {
 
     // Filling vars
     _replacerAddress = replacerMap["replacerAddress"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded replacerAddress: '" + _replacerAddress.toStdString() + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded replacerAddress: '" + _replacerAddress.toStdString() + "'\n");
 
     _replacerPort = replacerMap["replacerPort"].toUInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded replacerPort: " + std::to_string(_replacerPort)) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded replacerPort: " + std::to_string(_replacerPort)) + '\n';
 
     _firaAddress = replacerMap["firaAddress"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded firaAddress: '" + _firaAddress.toStdString() + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded firaAddress: '" + _firaAddress.toStdString() + "'\n");
 
     _firaPort = replacerMap["firaPort"].toUInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded firaPort: " + std::to_string(_firaPort)) + '\n';
-
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded firaPort: " + std::to_string(_firaPort)) + '\n';
 }
 
 void Constants::readTeamConstants() {
@@ -163,7 +194,8 @@ void Constants::readTeamConstants() {
 
     // Filling vars
     _qtPlayers = teamMap["qtPlayers"].toInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded qtPlayers: " + std::to_string(_qtPlayers)) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded qtPlayers: " + std::to_string(_qtPlayers)) + '\n';
 
     _teams.clear();
 
@@ -171,12 +203,17 @@ void Constants::readTeamConstants() {
         if (t.canConvert<QString>()) {
             QString teamName = t.toString();
             _teams.append(teamName);
-            std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded team: " + teamName.toStdString()) + '\n';
+            std::cout << Text::purple("[CONSTANTS] ", true)
+                      << Text::bold("Loaded team: " + teamName.toStdString()) + '\n';
         }
     }
 
     _blueIsLeftSide = teamMap["blueIsLeftSide"].toInt();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded blueIsLeftSide: " + ((_blueIsLeftSide) ? QString("true").toStdString() : QString("false").toStdString()) + '\n');
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded blueIsLeftSide: " +
+                            ((_blueIsLeftSide) ? QString("true").toStdString()
+                                               : QString("false").toStdString()) +
+                            '\n');
 }
 
 void Constants::readWebhookConstants() {
@@ -185,153 +222,83 @@ void Constants::readWebhookConstants() {
 
     // Filling vars
     _hID = teamMap["hID"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded hID: " + _hID.toStdString()) + '\n';
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded hID: " + _hID.toStdString()) + '\n';
 
     _hToken = teamMap["hToken"].toString();
-    std::cout << Text::purple("[CONSTANTS] ", true) << Text::bold("Loaded hToken: '" + _hToken.toStdString() + "'\n");
+    std::cout << Text::purple("[CONSTANTS] ", true)
+              << Text::bold("Loaded hToken: '" + _hToken.toStdString() + "'\n");
 }
 
-int Constants::threadFrequency() {
-    return _threadFrequency;
-}
+int Constants::threadFrequency() { return _threadFrequency; }
 
-QString Constants::networkInterface() {
-    return _networkInterface;
-}
+QString Constants::networkInterface() { return _networkInterface; }
 
-QString Constants::refereeAddress() {
-    return _refereeAddress;
-}
+QString Constants::refereeAddress() { return _refereeAddress; }
 
-quint16 Constants::refereePort() {
-    return _refereePort;
-}
+quint16 Constants::refereePort() { return _refereePort; }
 
-float Constants::transitionTime() {
-    return _transitionTime;
-}
+float Constants::transitionTime() { return _transitionTime; }
 
-QString Constants::gameType() {
-    return _gameType;
-}
+QString Constants::gameType() { return _gameType; }
 
-float Constants::ballRadius() {
-    return _ballRadius;
-}
+float Constants::ballRadius() { return _ballRadius; }
 
-float Constants::robotLength() {
-    return _robotLength;
-}
+float Constants::robotLength() { return _robotLength; }
 
-float Constants::halfTime() {
-    return _halfTime;
-}
+float Constants::halfTime() { return _halfTime; }
 
-float Constants::overtimeHalfTime() {
-    return _overtimeHalfTime;
-}
+float Constants::overtimeHalfTime() { return _overtimeHalfTime; }
 
-float Constants::ballMinSpeedForStuck() {
-    return _ballMinSpeedForStuck;
-}
+float Constants::ballMinSpeedForStuck() { return _ballMinSpeedForStuck; }
 
-float Constants::stuckedBallTime() {
-    return _stuckedBallTime;
-}
+float Constants::stuckedBallTime() { return _stuckedBallTime; }
 
-float Constants::ballInAreaMaxTime() {
-    return _ballInAreaMaxTime;
-}
+float Constants::ballInAreaMaxTime() { return _ballInAreaMaxTime; }
 
-bool Constants::useRefereeSuggestions() {
-    return _useRefereeSuggestions;
-}
+bool Constants::useRefereeSuggestions() { return _useRefereeSuggestions; }
 
-bool Constants::maintainSpeedAtSuggestions() {
-    return _maintainSpeedAtSuggestions;
-}
+bool Constants::maintainSpeedAtSuggestions() { return _maintainSpeedAtSuggestions; }
 
-void Constants::setIs5v5(bool is5v5) {
-    _is5v5 = is5v5;
-}
+void Constants::setIs5v5(bool is5v5) { _is5v5 = is5v5; }
 
-bool Constants::is5v5() {
-    return _is5v5;
-}
+bool Constants::is5v5() { return _is5v5; }
 
-QString Constants::visionAddress() {
-    return _visionAddress;
-}
+QString Constants::visionAddress() { return _visionAddress; }
 
-quint16 Constants::visionPort() {
-    return _visionPort;
-}
+quint16 Constants::visionPort() { return _visionPort; }
 
-QString Constants::firaVisionAddress() {
-    return _firaVisionAddress;
-}
+QString Constants::firaVisionAddress() { return _firaVisionAddress; }
 
-quint16 Constants::firaVisionPort() {
-    return _firaVisionPort;
-}
+quint16 Constants::firaVisionPort() { return _firaVisionPort; }
 
-bool Constants::isFIRAVision() {
-    return _isFIRAVision;
-}
+bool Constants::isFIRAVision() { return _isFIRAVision; }
 
-bool Constants::useKalman() {
-    return _useKalman;
-}
+bool Constants::useKalman() { return _useKalman; }
 
-int Constants::noiseTime() {
-    return _noiseTime;
-}
+int Constants::noiseTime() { return _noiseTime; }
 
-int Constants::lossTime() {
-    return _lossTime;
-}
+int Constants::lossTime() { return _lossTime; }
 
-QStringList Constants::teams() {
-    return _teams;
-}
+QStringList Constants::teams() { return _teams; }
 
-QString Constants::replacerAddress() {
-    return _replacerAddress;
-}
+QString Constants::replacerAddress() { return _replacerAddress; }
 
-quint16 Constants::replacerPort() {
-    return _replacerPort;
-}
+quint16 Constants::replacerPort() { return _replacerPort; }
 
-QString Constants::firaAddress() {
-    return _firaAddress;
-}
+QString Constants::firaAddress() { return _firaAddress; }
 
-quint16 Constants::firaPort() {
-    return _firaPort;
-}
+quint16 Constants::firaPort() { return _firaPort; }
 
-int Constants::qtPlayers() {
-    return _qtPlayers;
-}
+int Constants::qtPlayers() { return _qtPlayers; }
 
-bool Constants::blueIsLeftSide() {
-    return _blueIsLeftSide;
-}
+bool Constants::blueIsLeftSide() { return _blueIsLeftSide; }
 
-void Constants::swapSides() {
-    _blueIsLeftSide = !_blueIsLeftSide;
-}
+void Constants::swapSides() { _blueIsLeftSide = !_blueIsLeftSide; }
 
-QString Constants::getHID() {
-    return _hID;
-}
+QString Constants::getHID() { return _hID; }
 
-QString Constants::getHToken() {
-    return _hToken;
-}
-
-
+QString Constants::getHToken() { return _hToken; }
 
 int Constants::varsPerTeam() {
     QString varsPerTeam = _documentMap["Referee"].toMap()["game"].toMap()["varPerTeam"].toString();
@@ -342,7 +309,8 @@ int Constants::varsPerTeam() {
 }
 
 int Constants::timeoutsPerTeam() {
-    QString timeoutsPerTeam = _documentMap["Referee"].toMap()["game"].toMap()["timeoutsPerTeam"].toString();
+    QString timeoutsPerTeam =
+        _documentMap["Referee"].toMap()["game"].toMap()["timeoutsPerTeam"].toString();
     bool converted = false;
     int timeoutsPerTeamInt = timeoutsPerTeam.toInt(&converted);
 
@@ -350,9 +318,10 @@ int Constants::timeoutsPerTeam() {
 }
 
 float Constants::timeoutLength() {
-    QString timeoutLength = _documentMap["Referee"].toMap()["game"].toMap()["timeoutLength"].toString();
+    QString timeoutLength =
+        _documentMap["Referee"].toMap()["game"].toMap()["timeoutLength"].toString();
     bool converted = false;
-    float timeoutLengthFloat = timeoutLength.toFloat(&converted);   
+    float timeoutLengthFloat = timeoutLength.toFloat(&converted);
 
     return timeoutLengthFloat;
 }

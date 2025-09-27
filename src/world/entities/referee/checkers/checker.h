@@ -3,17 +3,16 @@
 
 #include <QObject>
 
-#include <src/world/entities/vision/vision.h>
 #include <src/utils/utils.h>
+#include <src/world/entities/vision/vision.h>
 
 // Abstract referee
 class Referee;
 
-class Checker : public QObject
-{
+class Checker : public QObject {
     Q_OBJECT
-public:
-    Checker(Vision *vision/*, Referee *referee*/, Constants *constants);
+  public:
+    Checker(Vision *vision /*, Referee *referee*/, Constants *constants);
 
     // Internal
     virtual QString name() = 0;
@@ -25,23 +24,24 @@ public:
     VSSRef::Color teamColor();
     VSSRef::Quadrant quadrant();
 
-protected:
-    Vision* getVision();
-    //Referee* getReferee();
-    Constants* getConstants();
+  protected:
+    Vision *getVision();
+    // Referee* getReferee();
+    Constants *getConstants();
 
     // Getters
-    //bool isGameOn();
+    // bool isGameOn();
 
     // Foul penalties setter
-    void setPenaltiesInfo(VSSRef::Foul penalty, VSSRef::Color teamColor = VSSRef::Color::NONE, VSSRef::Quadrant quadrant = VSSRef::Quadrant::NO_QUADRANT);
+    void setPenaltiesInfo(VSSRef::Foul penalty, VSSRef::Color teamColor = VSSRef::Color::NONE,
+                          VSSRef::Quadrant quadrant = VSSRef::Quadrant::NO_QUADRANT);
 
-private:
+  private:
     // Vision module
     Vision *_vision;
 
     // Referee module
-    //Referee *_referee;
+    // Referee *_referee;
 
     // Constants
     Constants *_constants;
@@ -51,7 +51,7 @@ private:
     VSSRef::Color _teamColor;
     VSSRef::Quadrant _quadrant;
 
-signals:
+  signals:
     void foulOccured();
 };
 

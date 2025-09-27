@@ -1,19 +1,18 @@
 #include "world.h"
 
-World::World(Constants *constants) {
+World::World(Constants *constants) : _constants(constants) {
     // Taking constants
-    _constants = constants;
 }
 
 void World::addEntity(Entity *entity, int entityPriotity) {
     // Check if priority is already created
-    if(!_worldEntities.keys().contains(entityPriotity)) {
+    if (!_worldEntities.keys().contains(entityPriotity)) {
         // Create it
-        _worldEntities.insert(entityPriotity, new QHash<int, Entity*>());
+        _worldEntities.insert(entityPriotity, new QHash<int, Entity *>());
     }
 
     // Take entities registered with 'entityPriority' priority
-    QHash<int, Entity*> *prioEntities = _worldEntities.value(entityPriotity);
+    QHash<int, Entity *> *prioEntities = _worldEntities.value(entityPriotity);
 
     // Inser them in hash using their id (unique in the software) as key
     prioEntities->insert(entity->entityId(), entity);
@@ -28,24 +27,24 @@ void World::startEntities() {
 
     // In each priority (decreasing, most priority first)
     const int prioritiesSize = priorities.size();
-    for(int i = prioritiesSize - 1; i >= 0; i--) {
-       const int priority = priorities.at(i);
+    for (int i = prioritiesSize - 1; i >= 0; i--) {
+        const int priority = priorities.at(i);
 
-       // Get associated entities
-       const QList<Entity*> entities = _worldEntities.value(priority)->values();
+        // Get associated entities
+        const QList<Entity *> entities = _worldEntities.value(priority)->values();
 
-       // Start those entities
-       QList<Entity*>::const_iterator it;
-       for(it = entities.constBegin(); it != entities.constEnd(); it++) {
-           // Take entity
-           Entity *entity = *it;
+        // Start those entities
+        QList<Entity *>::const_iterator it;
+        for (it = entities.constBegin(); it != entities.constEnd(); it++) {
+            // Take entity
+            Entity *entity = *it;
 
-           // Set frequency
-           entity->setLoopFrequency(getConstants()->threadFrequency());
+            // Set frequency
+            entity->setLoopFrequency(getConstants()->threadFrequency());
 
-           // Start entity
-           entity->start();
-       }
+            // Start entity
+            entity->start();
+        }
     }
 }
 
@@ -55,15 +54,15 @@ void World::stopAndDeleteEntities() {
 
     // In each priority (increasing)
     const int prioritiesSize = priorities.size();
-    for(int i = 0; i < prioritiesSize; i++) {
+    for (int i = 0; i < prioritiesSize; i++) {
         const int priority = priorities.at(i);
 
         // Get associated entities
-        const QList<Entity*> entities = _worldEntities.value(priority)->values();
+        const QList<Entity *> entities = _worldEntities.value(priority)->values();
 
         // Stop those entities
-        QList<Entity*>::const_iterator it;
-        for(it = entities.constBegin(); it != entities.constEnd(); it++) {
+        QList<Entity *>::const_iterator it;
+        for (it = entities.constBegin(); it != entities.constEnd(); it++) {
             // Take entity
             Entity *entity = *it;
 
@@ -75,7 +74,7 @@ void World::stopAndDeleteEntities() {
         }
 
         // Delete those entities
-        for(it = entities.constBegin(); it != entities.constEnd(); it++) {
+        for (it = entities.constBegin(); it != entities.constEnd(); it++) {
             // Take entity
             Entity *entity = *it;
 
@@ -88,11 +87,11 @@ void World::stopAndDeleteEntities() {
     }
 }
 
-Constants* World::getConstants() {
-    if(_constants == nullptr) {
-        std::cout << Text::red("[ERROR] ", true) << Text::bold("Constants with nullptr value at World") + '\n';
-    }
-    else {
+Constants *World::getConstants() {
+    if (_constants == nullptr) {
+        std::cout << Text::red("[ERROR] ", true)
+                  << Text::bold("Constants with nullptr value at World") + '\n';
+    } else {
         return _constants;
     }
 

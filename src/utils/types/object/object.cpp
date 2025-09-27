@@ -1,13 +1,8 @@
 #include "object.h"
 
-Object::Object(bool useKalman) {
-    _useKalman = useKalman;
-    setInvalid();
-}
+Object::Object(bool useKalman) : _useKalman(useKalman) { setInvalid(); }
 
-Object::~Object() {
-
-}
+Object::~Object() = default;
 
 Position Object::getPosition() {
     Position retn = _position;
@@ -27,35 +22,31 @@ Angle Object::getOrientation() {
     return retn;
 }
 
-bool Object::isObjectLoss() {
-    return _lossFilter.checkLoss();
-}
+bool Object::isObjectLoss() { return _lossFilter.checkLoss(); }
 
-bool Object::isObjectSafe() {
-    return _noiseFilter.checkNoise();
-}
+bool Object::isObjectSafe() { return _noiseFilter.checkNoise(); }
 
 void Object::updateObject(float confidence, Position pos, Angle orientation) {
     // Update confidence
     _confidence = confidence;
 
     // If pos is invalid (robot is not visible in frame)
-    if(pos.isInvalid()) {
+    if (pos.isInvalid()) {
         // If loss filter is not initialized
-        if(!_lossFilter.isInitialized()) {
+        if (!_lossFilter.isInitialized()) {
             // Just start loss
             _lossFilter.startLoss();
         }
         // If loss filter is already initialized
         else {
             // If object is really lost
-            if(isObjectLoss()) {
+            if (isObjectLoss()) {
                 // Reset noise and set invalid
                 _noiseFilter.startNoise();
                 setInvalid();
             }
             // If object is not lost already and is safe
-            else if((!isObjectLoss() && isObjectSafe()) && _useKalman){
+            else if ((!isObjectLoss() && isObjectSafe()) && _useKalman) {
                 // Predict with Kalman
                 _kalmanFilter.predict();
                 _position = _kalmanFilter.getPosition();
@@ -66,7 +57,7 @@ void Object::updateObject(float confidence, Position pos, Angle orientation) {
     // If pos is valid (robot was saw in frame)
     else {
         // If noise filter is not initialized
-        if(!_noiseFilter.isInitialized()) {
+        if (!_noiseFilter.isInitialized()) {
             // Init noise
             _noiseFilter.startNoise();
             // Set invalid
@@ -75,20 +66,20 @@ void Object::updateObject(float confidence, Position pos, Angle orientation) {
         // If noise filter is already initialized
         else {
             // If object is safe (survived at noise filter)
-            if(isObjectSafe()) {
+            if (isObjectSafe()) {
                 // Reset loss filter
                 _lossFilter.startLoss();
 
-                if(_useKalman) {
+                if (_useKalman) {
                     // Iterate in kalman filter
                     _kalmanFilter.iterate(pos);
 
                     // Update positions, orientations, velocity and confidence
-                    _position.setPosition(true, _kalmanFilter.getPosition().x(), _kalmanFilter.getPosition().y());
+                    _position.setPosition(true, _kalmanFilter.getPosition().x(),
+                                          _kalmanFilter.getPosition().y());
                     _velocity = _kalmanFilter.getVelocity();
                     _orientation = orientation;
-                }
-                else {
+                } else {
                     // Iterate in kalman filter (get velocity)
                     _kalmanFilter.iterate(pos);
                     _velocity = _kalmanFilter.getVelocity();

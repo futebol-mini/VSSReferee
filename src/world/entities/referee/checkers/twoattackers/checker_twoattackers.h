@@ -3,16 +3,15 @@
 
 #include <src/world/entities/referee/checkers/checker.h>
 
-class Checker_TwoAttackers : public Checker
-{
-public:
+class Checker_TwoAttackers : public Checker {
+  public:
     // Using Checker constructor
     using Checker::Checker;
 
     // Foul inherited methods
-    QString name();
-    void configure();
-    void run();
+    QString name() override;
+    void configure() override;
+    void run() override;
 
     // Flag getter
     bool isAnyTeamAttackingWithMoreThanPossible();
@@ -21,9 +20,9 @@ public:
     VSSRef::Color attackingTeam();
     float getTimer();
 
-private:
+  private:
     // Timers
-    QHash<VSSRef::Color, Timer*> _timers;
+    QHash<VSSRef::Color, Timer *> _timers;
 };
 
 #endif // CHECKER_TWOATTACKERS_H

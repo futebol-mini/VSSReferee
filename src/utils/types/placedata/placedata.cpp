@@ -5,18 +5,12 @@ PlaceData::PlaceData() {
     _orientation = Angle(false, 0.0);
 }
 
-PlaceData::PlaceData(Position position, Angle orientation) {
-    _position = position;
-    _orientation = orientation;
-}
+PlaceData::PlaceData(Position position, Angle orientation)
+    : _position(position), _orientation(orientation) {}
 
-Position PlaceData::getPosition() {
-    return _position;
-}
+Position PlaceData::getPosition() { return _position; }
 
-Angle PlaceData::getOrientation() {
-    return _orientation;
-}
+Angle PlaceData::getOrientation() { return _orientation; }
 
 void PlaceData::reflect() {
     _position = Position(true, (-1.0) * _position.x(), _position.y());

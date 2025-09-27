@@ -1,30 +1,29 @@
 #ifndef REFEREE_H
 #define REFEREE_H
 
-#include <QUdpSocket>
 #include <QSignalMapper>
+#include <QUdpSocket>
 
 #include <src/world/entities/entity.h>
-#include <src/world/entities/replacer/replacer.h>
 #include <src/world/entities/referee/checkers/checkers.h>
+#include <src/world/entities/replacer/replacer.h>
 
-#define MAX_PACKETS 10
+enum { MAX_PACKETS = 10 };
 
 // Abstract SoccerView
 class SoccerView;
 
-class Referee : public Entity
-{
+class Referee : public Entity {
     Q_OBJECT
-public:
+  public:
     Referee(Vision *vision, Replacer *replacer, SoccerView *soccerView, Constants *constants);
     bool isGameOn();
 
-private:
+  private:
     // Entity inherited methods
-    void initialization();
-    void loop();
-    void finalization();
+    void initialization() override;
+    void loop() override;
+    void finalization() override;
 
     // Vision
     Vision *_vision;
@@ -36,7 +35,7 @@ private:
     SoccerView *_soccerView;
 
     // Referee client
-    QUdpSocket *_refereeClient;
+    QUdpSocket *_refereeClient{};
     QString _refereeAddress;
     quint16 _refereePort;
     void connectClient();
@@ -44,15 +43,16 @@ private:
 
     // Constants
     Constants *_constants;
-    Constants* getConstants();
+    Constants *getConstants();
 
     // Penalties info
     VSSRef::Foul _lastFoul;
     VSSRef::Color _lastFoulTeam;
     VSSRef::Quadrant _lastFoulQuadrant;
-    bool _isToPlaceOutside;
+    bool _isToPlaceOutside{};
     QMutex _foulMutex;
-    void updatePenaltiesInfo(VSSRef::Foul foul, VSSRef::Color foulTeam, VSSRef::Quadrant foulQuadrant, bool isManual = false);
+    void updatePenaltiesInfo(VSSRef::Foul foul, VSSRef::Color foulTeam,
+                             VSSRef::Quadrant foulQuadrant, bool isManual = false);
     void sendPenaltiesToNetwork();
 
     // Checker management
@@ -62,34 +62,34 @@ private:
     void deleteCheckers();
 
     // Checkers
-    QHash<int, QVector<Checker*>*> _checkers;
+    QHash<int, QVector<Checker *> *> _checkers;
     QMutex _checkerMutex;
 
     // Stucked ball checker
-    Checker_StuckedBall *_stuckedBallChecker;
+    Checker_StuckedBall *_stuckedBallChecker{};
 
     // Half and timestamp management
-    Checker_HalfTime *_halfChecker;
+    Checker_HalfTime *_halfChecker{};
     VSSRef::Half _gameHalf;
     VSSRef::Color _halfKickoff;
-    float _timeStamp;
+    float _timeStamp{};
 
     // Goalie management
-    Checker_Goalie *_goalieChecker;
+    Checker_Goalie *_goalieChecker{};
 
     // Atk and def checkers
-    Checker_TwoAttackers *_twoAtkChecker;
-    Checker_TwoDefenders *_twoDefChecker;
-    Checker_BallPlay *_ballPlayChecker;
+    Checker_TwoAttackers *_twoAtkChecker{};
+    Checker_TwoDefenders *_twoDefChecker{};
+    Checker_BallPlay *_ballPlayChecker{};
 
     // Foul transition management
     Timer _transitionTimer;
     QMutex _transitionMutex;
-    bool _resetedTimer;
-    bool _isStopped;
-    bool _teamsPlaced;
-    bool _isEndGame;
-    bool _isPenaltyShootout;
+    bool _resetedTimer{};
+    bool _isStopped{};
+    bool _teamsPlaced{};
+    bool _isEndGame{};
+    bool _isPenaltyShootout{};
     void resetTransitionVars();
 
     // Collision
@@ -97,12 +97,12 @@ private:
 
     // Game control
     void sendControlFoul(VSSRef::Foul foul);
-    bool _gameHalted;
-    bool _longStop;
-    bool _goalOccurred;
+    bool _gameHalted{};
+    bool _longStop{};
+    bool _goalOccurred{};
 
     // Placement collision control
-    bool _forceDefault;
+    bool _forceDefault{};
     VSSRef::Foul _collisionFoul;
     VSSRef::Color _collisionColor;
     VSSRef::Quadrant _collisionQuadrant;
@@ -110,27 +110,30 @@ private:
     // Halt placement
     Position _lastBallPosition;
     Velocity _lastBallVelocity;
-    bool _placedLast;
+    bool _placedLast{};
     bool _isFIRAVision;
     bool _wait = false;
 
-signals:
+  signals:
     void sendFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant);
     void sendTimestamp(float halftime, float timestamp, VSSRef::Half half, bool isEndGame);
     void callReplacer(bool forceDefault, bool isToPlaceOutside);
     void saveFrame();
     void placeFrame();
     void placeBall(Position position, Velocity velocity);
-    void emitSuggestion(QString suggestion, VSSRef::Color forTeam = VSSRef::Color::NONE, VSSRef::Quadrant atQuadrant = VSSRef::Quadrant::NO_QUADRANT);
+    void emitSuggestion(QString suggestion, VSSRef::Color forTeam = VSSRef::Color::NONE,
+                        VSSRef::Quadrant atQuadrant = VSSRef::Quadrant::NO_QUADRANT);
 
-public slots:
+  public slots:
     void processChecker(QObject *checker);
     void halfPassed();
     void teamsPlaced();
     void goalOccurred(VSSRef::Color);
-    void takeManualFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant, bool isToPlaceOutside = false);
+    void takeManualFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant,
+                        bool isToPlaceOutside = false);
     void takeStuckedTime(float time);
-    void processCollision(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant, bool isToPlaceOutside);
+    void processCollision(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant,
+                          bool isToPlaceOutside);
     void processCollisionDecision();
     void visionPacketChanged(bool isFIRAVision);
 };

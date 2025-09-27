@@ -1,9 +1,8 @@
 #ifndef POSITION_H
 #define POSITION_H
 
-class Position
-{
-public:
+class Position {
+  public:
     Position();
     Position(bool isValid, float x, float y);
 
@@ -16,11 +15,11 @@ public:
     float x() const;
     float y() const;
 
-private:
+  private:
     // Params
-    bool _isValid;
-    float _x;
-    float _y;
+    bool _isValid{};
+    float _x{};
+    float _y{};
 };
 
 #endif // POSITION_H

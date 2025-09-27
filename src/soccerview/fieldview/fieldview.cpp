@@ -6,20 +6,18 @@
 #define FIELD_COLOR 0.208, 0.208, 0.208, 1.0
 #define FIELD_LINES_COLOR 1.0, 1.0, 1.0, 1.0
 
-FieldView::FieldView(QWidget *parent) : QGLWidget(QGLFormat(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::SampleBuffers), parent) {
+FieldView::FieldView(QWidget *parent)
+    : QGLWidget(QGLFormat(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::SampleBuffers), parent) {
     // Avoid auto fill background
     setAutoFillBackground(false);
 
     // Set stucked ball time
-    _stuckedBallTime = 0.0f;
 
     // Connect postRedraw to redraw
     connect(this, SIGNAL(postRedraw()), this, SLOT(redraw()));
 }
 
-void FieldView::setVisionModule(Vision *visionPointer) {
-    vision = visionPointer;
-}
+void FieldView::setVisionModule(Vision *visionPointer) { vision = visionPointer; }
 
 void FieldView::setField(Field *fieldPointer) {
     field = fieldPointer;
@@ -28,9 +26,7 @@ void FieldView::setField(Field *fieldPointer) {
     resetView();
 }
 
-void FieldView::setConstants(Constants *constantsPointer) {
-    constants = constantsPointer;
-}
+void FieldView::setConstants(Constants *constantsPointer) { constants = constantsPointer; }
 
 void FieldView::setStuckedTime(float time) {
     graphicsMutex.lock();
@@ -41,11 +37,13 @@ void FieldView::setStuckedTime(float time) {
 void FieldView::recomputeProjection() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(-0.5 * viewScale * width() + viewXOffset, 0.5 * viewScale * width() + viewXOffset, -0.5 * viewScale * height() + viewYOffset, 0.5 * viewScale * height() + viewYOffset, minZValue, maxZValue);
+    glOrtho(-0.5 * viewScale * width() + viewXOffset, 0.5 * viewScale * width() + viewXOffset,
+            -0.5 * viewScale * height() + viewYOffset, 0.5 * viewScale * height() + viewYOffset,
+            minZValue, maxZValue);
     glMatrixMode(GL_MODELVIEW);
 }
 
-void FieldView::paintEvent(QPaintEvent* event) {
+void FieldView::paintEvent(QPaintEvent *event) {
     graphicsMutex.lock();
 
     makeCurrent();
@@ -55,7 +53,7 @@ void FieldView::paintEvent(QPaintEvent* event) {
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
-    glEnable( GL_BLEND );
+    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glMatrixMode(GL_MODELVIEW);
@@ -72,29 +70,28 @@ void FieldView::paintEvent(QPaintEvent* event) {
     graphicsMutex.unlock();
 }
 
-void FieldView::wheelEvent(QWheelEvent* event) {
+void FieldView::wheelEvent(QWheelEvent *event) {
     double zoomRatio = -double(event->delta()) / 1000.0;
     viewScale = viewScale * (1.0 + zoomRatio);
     recomputeProjection();
     redraw();
 }
 
-void FieldView::mouseMoveEvent(QMouseEvent* event) {
+void FieldView::mouseMoveEvent(QMouseEvent *event) {
     bool leftButton = event->buttons().testFlag(Qt::LeftButton);
     bool midButton = event->buttons().testFlag(Qt::MidButton);
 
-    if(leftButton) {
-        //Pan
+    if (leftButton) {
+        // Pan
         viewXOffset -= viewScale * double(event->x() - mouseStartX);
         viewYOffset += viewScale * double(event->y() - mouseStartY);
         mouseStartX = event->x();
         mouseStartY = event->y();
         recomputeProjection();
         redraw();
-    }
-    else if(midButton) {
-        //Zoom
-        double zoomRatio = double(event->y() - mouseStartY)/500.0;
+    } else if (midButton) {
+        // Zoom
+        double zoomRatio = double(event->y() - mouseStartY) / 500.0;
         viewScale = viewScale * (1.0 + zoomRatio);
         recomputeProjection();
         mouseStartX = event->x();
@@ -103,17 +100,17 @@ void FieldView::mouseMoveEvent(QMouseEvent* event) {
     }
 }
 
-void FieldView::mousePressEvent(QMouseEvent* event) {
+void FieldView::mousePressEvent(QMouseEvent *event) {
     bool leftButton = event->buttons().testFlag(Qt::LeftButton);
     bool midButton = event->buttons().testFlag(Qt::MidButton);
 
-    if(leftButton) {
+    if (leftButton) {
         setCursor(Qt::ClosedHandCursor);
     }
-    if(midButton) {
+    if (midButton) {
         setCursor(Qt::SizeVerCursor);
     }
-    if(leftButton || midButton) {
+    if (leftButton || midButton) {
         // Start Pan / Zoom
         mouseStartX = event->x();
         mouseStartY = event->y();
@@ -121,68 +118,58 @@ void FieldView::mousePressEvent(QMouseEvent* event) {
     }
 }
 
-void FieldView::keyPressEvent(QKeyEvent* event) {
-    if(event->key() == Qt::Key_Space) {
+void FieldView::keyPressEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_Space) {
         resetView();
     }
 }
 
-void FieldView::resizeEvent(QResizeEvent* event) {
+void FieldView::resizeEvent(QResizeEvent *event) {
     QGLWidget::resizeEvent(event);
     redraw();
 
     resetView();
 }
 
-
-void FieldView::initializeGL() {
-
-}
+void FieldView::initializeGL() {}
 
 void FieldView::resizeGL(int width, int height) {
     glViewport(0, 0, width, height);
     recomputeProjection();
 }
 
-void FieldView::mouseReleaseEvent(QMouseEvent* event) {
-    setCursor(Qt::ArrowCursor);
-}
+void FieldView::mouseReleaseEvent(QMouseEvent *event) { setCursor(Qt::ArrowCursor); }
 
 void FieldView::drawFieldLines() {
     glColor4f(FIELD_LINES_COLOR);
 
     // Draw field lines
     QVector<FieldLine> fieldLines = getField()->fieldLines();
-    for(int i = 0; i < fieldLines.size(); i++) {
-        const FieldLine& line = fieldLines[i];
+    for (const auto &line : fieldLines) {
         drawFieldLine(line);
     }
 
     // Draw left goal lines
-    if(getConstants()->blueIsLeftSide()) {
+    if (getConstants()->blueIsLeftSide()) {
         glColor3d(0.2549, 0.4941, 1.0);
-    }
-    else {
+    } else {
         glColor3d(1.0, 0.9529, 0.2431);
     }
 
     QVector<FieldLine> leftGoalLines = getField()->leftGoalLines();
-    for(int i = 0; i < leftGoalLines.size(); i++) {
-        const FieldLine& line = leftGoalLines[i];
+    for (const auto &line : leftGoalLines) {
         drawFieldLine(line);
     }
 
-    if(getConstants()->blueIsLeftSide()) {
+    if (getConstants()->blueIsLeftSide()) {
         glColor3d(1.0, 0.9529, 0.2431);
-    }
-    else {
+    } else {
         glColor3d(0.2549, 0.4941, 1.0);
     }
 
     // Draw right goal lines
     QVector<FieldLine> rightGoalLines = getField()->rightGoalLines();
-    for(int i = 0; i < rightGoalLines.size(); i++) {
-        const FieldLine& line = rightGoalLines[i];
+    for (const auto &line : rightGoalLines) {
         drawFieldLine(line);
     }
 
@@ -190,8 +177,7 @@ void FieldView::drawFieldLines() {
     glColor4f(FIELD_LINES_COLOR);
 
     QVector<FieldCircularArc> fieldCircularArcs = getField()->fieldArcs();
-    for(int i = 0; i < fieldCircularArcs.size(); i++) {
-        const FieldCircularArc& arc = fieldCircularArcs[i];
+    for (const auto &arc : fieldCircularArcs) {
         const double half_thickness = 0.5 * arc.thickness;
         const double radius = arc.radius;
         const QVector2D center(arc.center_x, arc.center_y);
@@ -203,8 +189,7 @@ void FieldView::drawFieldLines() {
 
     // Draw field triangles
     QVector<FieldTriangle> fieldTriangles = getField()->fieldTriangles();
-    for(int i = 0; i < fieldTriangles.size(); i++) {
-        const FieldTriangle& triangle = fieldTriangles[i];
+    for (const auto &triangle : fieldTriangles) {
         const QVector2D v1(triangle.p1_x, triangle.p1_y);
         const QVector2D v2(triangle.p2_x, triangle.p2_y);
         const QVector2D v3(triangle.p3_x, triangle.p3_y);
@@ -218,7 +203,8 @@ void FieldView::drawFieldLine(const FieldLine &line) {
     const QVector2D point2(line.p2_x, line.p2_y);
 
     // Calc perpendicular
-    const QVector2D perpendicular = QVector2D(-(point2 - point1).normalized().y(), (point2 - point1).normalized().x());
+    const QVector2D perpendicular =
+        QVector2D(-(point2 - point1).normalized().y(), (point2 - point1).normalized().x());
 
     // Get vertices
     const QVector2D v1 = point1 - (half_thickness * perpendicular);
@@ -239,7 +225,8 @@ void FieldView::drawQuad(QVector2D point1, QVector2D point2, double z) {
     glEnd();
 }
 
-void FieldView::drawQuad(QVector2D vert1, QVector2D vert2, QVector2D vert3, QVector2D vert4, double z) {
+void FieldView::drawQuad(QVector2D vert1, QVector2D vert2, QVector2D vert3, QVector2D vert4,
+                         double z) {
     glBegin(GL_QUADS);
     glVertex3d(vert1.x(), vert1.y(), z);
     glVertex3d(vert2.x(), vert2.y(), z);
@@ -248,24 +235,25 @@ void FieldView::drawQuad(QVector2D vert1, QVector2D vert2, QVector2D vert3, QVec
     glEnd();
 }
 
-void FieldView::drawArc(QVector2D loc, double r1, double r2, double theta1, double theta2, double z, double dTheta) {
+void FieldView::drawArc(QVector2D loc, double r1, double r2, double theta1, double theta2, double z,
+                        double dTheta) {
     static const double tesselation = 1.0;
 
-    if(dTheta < 0.0) {
-        dTheta = tesselation/r2;
+    if (dTheta < 0.0) {
+        dTheta = tesselation / r2;
     }
 
     glBegin(GL_QUAD_STRIP);
 
-    for(double theta=theta1; theta<theta2; theta+=dTheta) {
+    for (double theta = theta1; theta < theta2; theta += dTheta) {
         double c1 = cos(theta), s1 = sin(theta);
         glVertex3d(r2 * c1 + loc.x(), r2 * s1 + loc.y(), z);
         glVertex3d(r1 * c1 + loc.x(), r1 * s1 + loc.y(), z);
     }
 
     double c1 = cos(theta2), s1 = sin(theta2);
-    glVertex3d(r2 * c1 + loc.x(),r2 * s1 + loc.y(), z);
-    glVertex3d(r1 * c1 + loc.x(),r1 * s1 + loc.y(), z);
+    glVertex3d(r2 * c1 + loc.x(), r2 * s1 + loc.y(), z);
+    glVertex3d(r1 * c1 + loc.x(), r1 * s1 + loc.y(), z);
 
     glEnd();
 }
@@ -278,7 +266,8 @@ void FieldView::drawTriangle(QVector2D v1, QVector2D v2, QVector2D v3, double z)
     glEnd();
 }
 
-void FieldView::drawRobot(VSSRef::Color teamColor, quint8 robotId, QVector2D robotPosition, double robotOrientation) {
+void FieldView::drawRobot(VSSRef::Color teamColor, quint8 robotId, QVector2D robotPosition,
+                          double robotOrientation) {
     glPushMatrix();
     glLoadIdentity();
     glTranslated(robotPosition.x(), robotPosition.y(), 0.0);
@@ -286,7 +275,7 @@ void FieldView::drawRobot(VSSRef::Color teamColor, quint8 robotId, QVector2D rob
     glRotated(robotOrientation, 0, 0, 1.0);
 
     // Robot id
-    glColor3d(0.0,0.0,0.0);
+    glColor3d(0.0, 0.0, 0.0);
     char buffer[8];
     sprintf(buffer, "%d", robotId);
     glText.drawString(robotPosition, 0, 50, buffer, GLText::CenterAligned, GLText::MiddleAligned);
@@ -295,77 +284,76 @@ void FieldView::drawRobot(VSSRef::Color teamColor, quint8 robotId, QVector2D rob
     switch (teamColor) {
     case VSSRef::Color::BLUE: {
         glColor3d(0.2549, 0.4941, 1.0);
-    }
-    break;
+    } break;
     case VSSRef::Color::YELLOW: {
         glColor3d(1.0, 0.9529, 0.2431);
-    }
-    break;
+    } break;
     default: {
-        glColor3d(0.5882,0.5882,0.5882);
+        glColor3d(0.5882, 0.5882, 0.5882);
+    } break;
     }
-    break;
-    }
-    drawQuad(QVector2D(-35, 35), QVector2D(35,-35), RobotZ);
+    drawQuad(QVector2D(-35, 35), QVector2D(35, -35), RobotZ);
 
     // Take team color (draw shape)
-    switch(teamColor) {
-    case VSSRef::Color::BLUE:{
+    switch (teamColor) {
+    case VSSRef::Color::BLUE: {
         glColor3d(0.0706, 0.2314, 0.6275);
-    }
-    break;
-    case VSSRef::Color::YELLOW:{
+    } break;
+    case VSSRef::Color::YELLOW: {
         glColor3d(0.8, 0.6157, 0.0);
-    }
-    break;
-    default:{
-        glColor3d(0.2745,0.2745,0.2745);
-    }
-    break;
+    } break;
+    default: {
+        glColor3d(0.2745, 0.2745, 0.2745);
+    } break;
     }
 
     // Robot shape
     drawQuad(QVector2D(-35, 35), QVector2D(35, -35), RobotZ);
-    drawQuad(QVector2D(-40, 40), QVector2D(40, 35), RobotZ+0.01);
-    drawQuad(QVector2D(-40, -40), QVector2D(40, -35), RobotZ+0.01);
-    drawQuad(QVector2D(40, -40), QVector2D(35, 40), RobotZ+0.01);
-    drawQuad(QVector2D(-40, -40), QVector2D(-35, 40), RobotZ+0.01);
+    drawQuad(QVector2D(-40, 40), QVector2D(40, 35), RobotZ + 0.01);
+    drawQuad(QVector2D(-40, -40), QVector2D(40, -35), RobotZ + 0.01);
+    drawQuad(QVector2D(40, -40), QVector2D(35, 40), RobotZ + 0.01);
+    drawQuad(QVector2D(-40, -40), QVector2D(-35, 40), RobotZ + 0.01);
 
     // Wheels
     glColor3d(0.5, 0.5, 0.5);
-    drawQuad(QVector2D(-20, 47), QVector2D(20, 40), RobotZ+0.02);
-    drawQuad(QVector2D(-20, -47), QVector2D(20,-40), RobotZ+0.02);
+    drawQuad(QVector2D(-20, 47), QVector2D(20, 40), RobotZ + 0.02);
+    drawQuad(QVector2D(-20, -47), QVector2D(20, -40), RobotZ + 0.02);
 
     glPopMatrix();
 }
 
 void FieldView::drawText(QVector2D position, double angle, double size, QString text) {
     glColor3d(1.0, 1.0, 1.0);
-    glText.drawString(position, angle, size, text.toStdString().c_str(), GLText::CenterAligned, GLText::MiddleAligned);
+    glText.drawString(position, angle, size, text.toStdString().c_str(), GLText::CenterAligned,
+                      GLText::MiddleAligned);
 }
 
 void FieldView::drawFieldObjects() {
     // Draw ball
-    QVector2D ballPosition = QVector2D(getVision()->getBallPosition().x() * 1000.0, getVision()->getBallPosition().y() * 1000.0);
-    glColor3d(1.0,0.5059,0.0);
+    QVector2D ballPosition = QVector2D(getVision()->getBallPosition().x() * 1000.0,
+                                       getVision()->getBallPosition().y() * 1000.0);
+    glColor3d(1.0, 0.5059, 0.0);
     drawArc(ballPosition, 0, 16, -M_PI, M_PI, BallZ);
-    glColor3d(0.8706,0.3490,0.0);
+    glColor3d(0.8706, 0.3490, 0.0);
     drawArc(ballPosition, 15, 21, -M_PI, M_PI, BallZ);
 
     // Draw teams robots
-    for(int i = VSSRef::Color::BLUE; i <= VSSRef::Color::YELLOW; i++) {
+    for (int i = VSSRef::Color::BLUE; i <= VSSRef::Color::YELLOW; i++) {
         QList<quint8> avPlayers = getVision()->getAvailablePlayers(VSSRef::Color(i));
-        for(int j = 0; j < avPlayers.size(); j++) {
-            Position robotPosition = getVision()->getPlayerPosition(VSSRef::Color(i), avPlayers.at(j));
-            Angle robotOrientation = getVision()->getPlayerOrientation(VSSRef::Color(i), avPlayers.at(j));
-            drawRobot(VSSRef::Color(i), avPlayers.at(j), QVector2D(robotPosition.x() * 1000.0, robotPosition.y() * 1000.0), (robotOrientation.value() * (180.0/M_PI)));
+        for (unsigned char avPlayer : avPlayers) {
+            Position robotPosition = getVision()->getPlayerPosition(VSSRef::Color(i), avPlayer);
+            Angle robotOrientation = getVision()->getPlayerOrientation(VSSRef::Color(i), avPlayer);
+            drawRobot(VSSRef::Color(i), avPlayer,
+                      QVector2D(robotPosition.x() * 1000.0, robotPosition.y() * 1000.0),
+                      (robotOrientation.value() * (180.0 / M_PI)));
         }
     }
 }
 
 void FieldView::drawStuckedTime() {
     // Check if time >= 0.1s (avoid noise)
-    if(_stuckedBallTime < 0.1) return ;
+    if (_stuckedBallTime < 0.1)
+        return;
 
     // Get stucked ball time and adjust y by a factor
     float factor = (getVision()->getBallPosition().y() >= 0.0) ? -1.0 : 1.0;
@@ -375,8 +363,7 @@ void FieldView::drawStuckedTime() {
     std::string str = stream.str();
 
     // Draw text on screen
-    drawText(QVector2D(getVision()->getBallPosition().x() * 1000.0 +
-                           getConstants()->ballRadius(),
+    drawText(QVector2D(getVision()->getBallPosition().x() * 1000.0 + getConstants()->ballRadius(),
                        getVision()->getBallPosition().y() * 1000.0 +
                            (factor * (40.0 - getConstants()->ballRadius()))),
              0.0, 40.0, QString(str.c_str()));
@@ -384,23 +371,22 @@ void FieldView::drawStuckedTime() {
 
 void FieldView::resetView() {
     viewScale = (getField()->fieldLength() + getField()->boundaryWidth()) / sizeHint().width();
-    viewScale = std::max(viewScale, (getField()->fieldWidth()+ getField()->boundaryWidth()) / sizeHint().height());
+    viewScale = std::max(viewScale, (getField()->fieldWidth() + getField()->boundaryWidth()) /
+                                        sizeHint().height());
 
     viewXOffset = viewYOffset = 0.0;
     recomputeProjection();
     redraw();
 }
 
-void FieldView::updateField() {
-    emit postRedraw();
-}
+void FieldView::updateField() { emit postRedraw(); }
 
 void FieldView::redraw() {
     // Stop timer
     timer.stop();
 
     // Check if passed timer is ok
-    if(timer.getSeconds() < MinRedrawInterval) {
+    if (timer.getSeconds() < MinRedrawInterval) {
         return;
     }
 
@@ -413,33 +399,33 @@ void FieldView::redraw() {
     timer.start();
 }
 
-Vision* FieldView::getVision() {
-    if(vision == nullptr) {
-        std::cout << Text::red("[ERROR] ", true) << Text::bold("Vision with nullptr value at FieldView") + '\n';
-    }
-    else {
+Vision *FieldView::getVision() {
+    if (vision == nullptr) {
+        std::cout << Text::red("[ERROR] ", true)
+                  << Text::bold("Vision with nullptr value at FieldView") + '\n';
+    } else {
         return vision;
     }
 
     return nullptr;
 }
 
-Field* FieldView::getField() {
-    if(field == nullptr) {
-        std::cout << Text::red("[ERROR] ", true) << Text::bold("Field with nullptr value at FieldView") + '\n';
-    }
-    else {
+Field *FieldView::getField() {
+    if (field == nullptr) {
+        std::cout << Text::red("[ERROR] ", true)
+                  << Text::bold("Field with nullptr value at FieldView") + '\n';
+    } else {
         return field;
     }
 
     return nullptr;
 }
 
-Constants* FieldView::getConstants() {
-    if(vision == nullptr) {
-        std::cout << Text::red("[ERROR] ", true) << Text::bold("Constants with nullptr value at FieldView") + '\n';
-    }
-    else {
+Constants *FieldView::getConstants() {
+    if (vision == nullptr) {
+        std::cout << Text::red("[ERROR] ", true)
+                  << Text::bold("Constants with nullptr value at FieldView") + '\n';
+    } else {
         return constants;
     }
 

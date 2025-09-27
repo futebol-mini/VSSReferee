@@ -63,6 +63,4 @@ QString Timer::getActualTime() {
     return actualTime;
 }
 
-qint64 Timer::systemTime() {
-    return QDateTime::currentMSecsSinceEpoch();
-}
+qint64 Timer::systemTime() { return QDateTime::currentMSecsSinceEpoch(); }

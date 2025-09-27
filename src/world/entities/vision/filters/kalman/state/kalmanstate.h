@@ -4,7 +4,7 @@
 #include <src/world/entities/vision/filters/kalman/matrix/matrix.h>
 
 class KalmanState {
-public:
+  public:
     KalmanState();
 
     void setPosition(float value);
@@ -13,9 +13,9 @@ public:
     float getPosition() const;
     float getVelocity() const;
     float getAcceleration() const;
-    Matrix& matrix();
+    Matrix &matrix();
 
-private:
+  private:
     Matrix _state;
 };
 

@@ -1,22 +1,16 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
+#include <QMutex>
 #include <QObject>
 #include <QThread>
-#include <QMutex>
 
 #include <src/utils/timer/timer.h>
 
-enum EntityType {
-    ENT_VISION,
-    ENT_REFEREE,
-    ENT_REPLACER,
-    ENT_GUI
-};
+enum EntityType { ENT_VISION, ENT_REFEREE, ENT_REPLACER, ENT_GUI };
 
-class Entity : public QThread
-{
-public:
+class Entity : public QThread {
+  public:
     Entity(EntityType type);
 
     // Setters
@@ -34,9 +28,9 @@ public:
     bool isLoopEnabled();
     EntityType entityType();
 
-private:
+  private:
     // Main run method
-    void run();
+    void run() override;
 
     // Virtual methods
     virtual void initialization() = 0;
@@ -44,10 +38,10 @@ private:
     virtual void finalization() = 0;
 
     // Entity info
-    int _loopFrequency;
-    int _entityPriority;
-    bool _isEnabled;
-    bool _loopEnabled;
+    int _loopFrequency{60};
+    int _entityPriority{0};
+    bool _isEnabled{true};
+    bool _loopEnabled{true};
     EntityType _entityType;
     static int _id;
 

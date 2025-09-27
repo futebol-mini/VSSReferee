@@ -19,70 +19,62 @@
 */
 //========================================================================
 
+#include <GL/glu.h>
 #include <QVector>
 #include <QtGui>
-#include <GL/glu.h>
-#include <math.h>
-#include <stdio.h>
-#include <float.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
 
 #ifndef GL_TEXT_H
 #define GL_TEXT_H
 
-class GLText{
-  struct Glyph{
-    bool compiled;
-    GLuint displayListID;
-    double width;
-    double height;
-    double ascent;
-    double descent;
-    Glyph(){compiled=false;}
-  };
+class GLText {
+    struct Glyph {
+        bool compiled{false};
+        GLuint displayListID{};
+        double width{};
+        double height{};
+        double ascent{};
+        double descent{};
+        Glyph() = default;
+    };
 
-  QVector<Glyph> glyphs;
+    QVector<Glyph> glyphs;
 
-  double characterSpacing;
-  static const bool debugTesselation = false;
-  QFont font;
+    double characterSpacing{0.1};
+    static const bool debugTesselation = false;
+    QFont font;
 
-public:
+  public:
+    using HAlignOptions = enum { LeftAligned, RightAligned, CenterAligned };
 
-  typedef enum{
-    LeftAligned,
-    RightAligned,
-    CenterAligned
-  }HAlignOptions;
+    using VAlignOptions = enum { TopAligned, BottomAligned, MedianAligned, MiddleAligned };
 
-  typedef enum{
-    TopAligned,
-    BottomAligned,
-    MedianAligned,
-    MiddleAligned
-  }VAlignOptions;
+    GLText(QFont font = QFont());
+    ~GLText();
+    void drawString(QVector2D loc, double angle, double size, const char *str,
+                    GLText::HAlignOptions hAlign = LeftAligned,
+                    GLText::VAlignOptions vAlign = MiddleAligned);
+    void drawGlyph(char glyph);
+    void initializeGlyph(char ch);
+    double getWidth(char ch);
+    double getHeight(char ch);
+    QVector2D getSize(char ch);
+    double getWidth(const char *str);
+    double getHeight(const char *str);
+    double getAscent(char ch);
+    double getDescent(char ch);
+    double getAscent(const char *str);
+    double getDescent(const char *str);
 
-  GLText(QFont font = QFont());
-  ~GLText();
-  void drawString(QVector2D loc, double angle, double size, const char* str, GLText::HAlignOptions hAlign=LeftAligned, GLText::VAlignOptions vAlign=MiddleAligned);
-  void drawGlyph(char glyph);
-  void initializeGlyph(char ch);
-  double getWidth(char ch);
-  double getHeight(char ch);
-  QVector2D getSize(char ch);
-  double getWidth(const char* str);
-  double getHeight(const char* str);
-  double getAscent(char ch);
-  double getDescent(char ch);
-  double getAscent(const char* str);
-  double getDescent(const char* str);
-
-private:
-  static const char* getPrimitiveType(GLenum type);
-  static void tessBeginCB(GLenum which);
-  static void tessEndCB();
-  static void tessVertexCB(const GLvoid *data);
-  static void tessErrorCB(GLenum errorCode);
-  static constexpr double FontRenderSize = 1000.0;
+  private:
+    static const char *getPrimitiveType(GLenum type);
+    static void tessBeginCB(GLenum which);
+    static void tessEndCB();
+    static void tessVertexCB(const GLvoid *data);
+    static void tessErrorCB(GLenum errorCode);
+    static constexpr double FontRenderSize = 1000.0;
 };
 
-#endif //GL_TEXT_H
+#endif // GL_TEXT_H

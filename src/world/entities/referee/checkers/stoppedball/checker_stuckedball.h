@@ -3,37 +3,36 @@
 
 #include <src/world/entities/referee/checkers/checker.h>
 
-class Checker_StuckedBall : public Checker
-{
+class Checker_StuckedBall : public Checker {
     Q_OBJECT
-public:
+  public:
     // Using Checker constructor
     using Checker::Checker;
 
     // Foul inherited methods
-    QString name();
-    void configure();
-    void run();
+    QString name() override;
+    void configure() override;
+    void run() override;
 
     // Penalty management
     void setIsPenaltyShootout(bool isPenaltyShootout, VSSRef::Color firstPenaltyTeam);
 
-private:
+  private:
     // Timer
     Timer _timer;
 
     // Penalty management
-    bool _isPenaltyShootout;
+    bool _isPenaltyShootout{};
     VSSRef::Color _penaltyTeam;
     void setNextTeam();
 
     // Last stuck check
-    bool _isLastStuckAtGoalArea;
+    bool _isLastStuckAtGoalArea{};
 
     // Utils
     bool havePlayersNearlyBall(VSSRef::Color teamColor);
 
-signals:
+  signals:
     void sendStuckedTime(float time);
 };
 

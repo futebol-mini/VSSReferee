@@ -1,17 +1,16 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QVariantMap>
 #include <QString>
-#include <QFile>
+#include <QVariantMap>
 
 #include <src/utils/text/text.h>
 
-class Constants
-{
-public:
+class Constants {
+  public:
     Constants(QString fileName);
 
     // Entities constants getters
@@ -69,11 +68,10 @@ public:
     float timeoutLength();
     int varsPerTeam();
 
-
-protected:
+  protected:
     QVariantMap documentMap() { return _documentMap; }
 
-private:
+  private:
     // Internal file management
     QString _fileName;
     QString _fileBuffer;
@@ -84,7 +82,7 @@ private:
     QVariantMap _documentMap;
 
     // Entities constants
-    int _threadFrequency;
+    int _threadFrequency{};
     void readEntityConstants();
 
     // Network interface
@@ -93,43 +91,43 @@ private:
 
     // Referee
     QString _refereeAddress;
-    quint16 _refereePort;
-    float _transitionTime;
+    quint16 _refereePort{};
+    float _transitionTime{};
     QString _gameType;
-    float _ballRadius;
-    float _robotLength;
-    float _halfTime;
-    float _overtimeHalfTime;
-    float _ballMinSpeedForStuck;
-    float _stuckedBallTime;
-    float _ballInAreaMaxTime;
-    bool _useRefereeSuggestions;
-    bool _maintainSpeedAtSuggestions;
-    bool _is5v5;
+    float _ballRadius{};
+    float _robotLength{};
+    float _halfTime{};
+    float _overtimeHalfTime{};
+    float _ballMinSpeedForStuck{};
+    float _stuckedBallTime{};
+    float _ballInAreaMaxTime{};
+    bool _useRefereeSuggestions{};
+    bool _maintainSpeedAtSuggestions{};
+    bool _is5v5{};
     void readRefereeConstants();
 
     // Vision constants
     QString _visionAddress;
-    quint16 _visionPort;
+    quint16 _visionPort{};
     QString _firaVisionAddress;
-    quint16 _firaVisionPort;
-    bool _isFIRAVision;
-    bool _useKalman;
-    int _noiseTime;
-    int _lossTime;
+    quint16 _firaVisionPort{};
+    bool _isFIRAVision{};
+    bool _useKalman{};
+    int _noiseTime{};
+    int _lossTime{};
     void readVisionConstants();
 
     // Replacer constants
     QString _replacerAddress;
-    quint16 _replacerPort;
+    quint16 _replacerPort{};
     QString _firaAddress;
-    quint16 _firaPort;
+    quint16 _firaPort{};
     void readReplacerConstants();
 
     // Teams constants
-    int _qtPlayers;
+    int _qtPlayers{};
     QStringList _teams;
-    bool _blueIsLeftSide;
+    bool _blueIsLeftSide{};
     void readTeamConstants();
 
     // Discord webhook

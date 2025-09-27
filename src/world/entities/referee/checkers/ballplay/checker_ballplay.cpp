@@ -1,15 +1,15 @@
 ﻿#include "checker_ballplay.h"
 
-QString Checker_BallPlay::name() {
-    return "Checker_BallPlay";
-}
+QString Checker_BallPlay::name() { return "Checker_BallPlay"; }
 
-void Checker_BallPlay::setAtkDefCheckers(Checker_TwoAttackers *twoAtk, Checker_TwoDefenders *twoDef) {
+void Checker_BallPlay::setAtkDefCheckers(Checker_TwoAttackers *twoAtk,
+                                         Checker_TwoDefenders *twoDef) {
     _checkerTwoAtk = twoAtk;
     _checkerTwoDef = twoDef;
 }
 
-void Checker_BallPlay::setIsPenaltyShootout(bool isPenaltyShootout, VSSRef::Color firstPenaltyTeam) {
+void Checker_BallPlay::setIsPenaltyShootout(bool isPenaltyShootout,
+                                            VSSRef::Color firstPenaltyTeam) {
     _isPenaltyShootout = isPenaltyShootout;
     _penaltyTeam = firstPenaltyTeam;
 }
@@ -36,213 +36,258 @@ void Checker_BallPlay::run() {
     Position ballPos = getVision()->getBallPosition();
 
     // Check if ball passed midField
-    if(_isPenaltyShootout) {
+    if (_isPenaltyShootout) {
         bool passedMidField = false;
-        if(_penaltyTeam == VSSRef::Color::BLUE) {
-            passedMidField = (getConstants()->blueIsLeftSide()) ? (ballPos.x() < 0.0) : (ballPos.x() >= 0.0);
-        }
-        else {
-            passedMidField = (getConstants()->blueIsLeftSide()) ? (ballPos.x() >= 0.0) : (ballPos.x() < 0.0);
+        if (_penaltyTeam == VSSRef::Color::BLUE) {
+            passedMidField =
+                (getConstants()->blueIsLeftSide()) ? (ballPos.x() < 0.0) : (ballPos.x() >= 0.0);
+        } else {
+            passedMidField =
+                (getConstants()->blueIsLeftSide()) ? (ballPos.x() >= 0.0) : (ballPos.x() < 0.0);
         }
 
-        if(passedMidField) {
+        if (passedMidField) {
             setNextTeam();
-            setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _penaltyTeam, VSSRef::Quadrant::NO_QUADRANT);
+            setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _penaltyTeam,
+                             VSSRef::Quadrant::NO_QUADRANT);
             emit foulOccured();
 
             return;
         }
     }
 
-    if(!_areaTimerControl && ((Utils::isInsideBigArea(VSSRef::Color::BLUE, ballPos) && !Utils::isBallInsideGoal(VSSRef::Color::BLUE, ballPos)) || (Utils::isInsideBigArea(VSSRef::Color::YELLOW, ballPos) && !Utils::isBallInsideGoal(VSSRef::Color::YELLOW, ballPos)))) {
+    if (!_areaTimerControl && ((Utils::isInsideBigArea(VSSRef::Color::BLUE, ballPos) &&
+                                !Utils::isBallInsideGoal(VSSRef::Color::BLUE, ballPos)) ||
+                               (Utils::isInsideBigArea(VSSRef::Color::YELLOW, ballPos) &&
+                                !Utils::isBallInsideGoal(VSSRef::Color::YELLOW, ballPos)))) {
         // Update control vars
         _isPlayRunning = true;
-        if(!_possiblePenalty) {
+        if (!_possiblePenalty) {
             _possiblePenalty = _checkerTwoDef->isAnyTeamDefendingWithMoreThanPossible();
-            if(_possiblePenalty) {
-                _possiblePenaltyTeam = (_checkerTwoDef->defendingTeam() == VSSRef::Color::BLUE) ? VSSRef::Color::YELLOW : VSSRef::Color::BLUE;
-                emit emitSuggestion(VSSRef::Foul_Name(VSSRef::Foul::PENALTY_KICK).c_str(), _possiblePenaltyTeam);
+            if (_possiblePenalty) {
+                _possiblePenaltyTeam = (_checkerTwoDef->defendingTeam() == VSSRef::Color::BLUE)
+                                           ? VSSRef::Color::YELLOW
+                                           : VSSRef::Color::BLUE;
+                emit emitSuggestion(VSSRef::Foul_Name(VSSRef::Foul::PENALTY_KICK).c_str(),
+                                    _possiblePenaltyTeam);
             }
         }
 
-        if(!_possibleGoalKick) {
+        if (!_possibleGoalKick) {
             _possibleGoalKick = _checkerTwoAtk->isAnyTeamAttackingWithMoreThanPossible();
-            if(_possibleGoalKick) {
-                _possibleGoalKickTeam = (_checkerTwoAtk->attackingTeam() == VSSRef::Color::BLUE) ? VSSRef::Color::YELLOW : VSSRef::Color::BLUE;
-                emit emitSuggestion(VSSRef::Foul_Name(VSSRef::Foul::GOAL_KICK).c_str(), _possibleGoalKickTeam);
+            if (_possibleGoalKick) {
+                _possibleGoalKickTeam = (_checkerTwoAtk->attackingTeam() == VSSRef::Color::BLUE)
+                                            ? VSSRef::Color::YELLOW
+                                            : VSSRef::Color::BLUE;
+                emit emitSuggestion(VSSRef::Foul_Name(VSSRef::Foul::GOAL_KICK).c_str(),
+                                    _possibleGoalKickTeam);
             }
         }
 
         // Update passed timer if an foul has detected ( >= ballInAreaMaxTime() will halt game )
-        if((_possibleGoalKick || _possiblePenalty) && getConstants()->useRefereeSuggestions() && !_isPenaltyShootout) {
+        if ((_possibleGoalKick || _possiblePenalty) && getConstants()->useRefereeSuggestions() &&
+            !_isPenaltyShootout) {
             _areaTimer.stop();
-            if(_areaTimer.getSeconds() >= getConstants()->ballInAreaMaxTime()) {
+            if (_areaTimer.getSeconds() >= getConstants()->ballInAreaMaxTime()) {
                 _areaTimerControl = true;
             }
-        }
-        else {
+        } else {
             _areaTimer.start();
         }
-    }
-    else {
-        if(_isPlayRunning) {
+    } else {
+        if (_isPlayRunning) {
             // If play was running before, check if occurred an goal or ball just leaved goal area
-            for(int i = VSSRef::Color::BLUE; i <= VSSRef::Color::YELLOW; i++) {
-                if(Utils::isBallInsideGoal(VSSRef::Color(i), ballPos)) {
+            for (int i = VSSRef::Color::BLUE; i <= VSSRef::Color::YELLOW; i++) {
+                if (Utils::isBallInsideGoal(VSSRef::Color(i), ballPos)) {
                     // Mark possible goal
                     _possibleGoal = true;
-                    _possibleGoalTeam = (i == VSSRef::Color::BLUE) ? VSSRef::Color::YELLOW : VSSRef::Color::BLUE;
+                    _possibleGoalTeam =
+                        (i == VSSRef::Color::BLUE) ? VSSRef::Color::YELLOW : VSSRef::Color::BLUE;
 
                     // Check if not occurred possible penalty or goal kick
-                    if(!_possiblePenalty && !_possibleGoalKick) {
+                    if (!_possiblePenalty && !_possibleGoalKick) {
                         // Send as valid goal
                         // emit emitGoal(_possibleGoalTeam);
 
                         // If is penalty shootout
-                        if(_isPenaltyShootout) {
+                        if (_isPenaltyShootout) {
                             setNextTeam();
-                            setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _penaltyTeam, VSSRef::Quadrant::NO_QUADRANT);
-                            if(!_ballInside){
+                            setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _penaltyTeam,
+                                             VSSRef::Quadrant::NO_QUADRANT);
+                            if (!_ballInside) {
                                 emit emitSuggestion("GOAL", _possibleGoalTeam);
                                 _ballInside = true;
                             }
                             // emit foulOccured();
-                            return ;
-                        }
-                        else {
-                            setPenaltiesInfo(VSSRef::Foul::KICKOFF, VSSRef::Color(i), VSSRef::Quadrant::NO_QUADRANT);
-                            if(!_ballInside){
+                            return;
+                        } else {
+                            setPenaltiesInfo(VSSRef::Foul::KICKOFF, VSSRef::Color(i),
+                                             VSSRef::Quadrant::NO_QUADRANT);
+                            if (!_ballInside) {
                                 emit emitSuggestion("GOAL", _possibleGoalTeam);
                                 _ballInside = true;
                             }
                             // emit foulOccured();
-                            return ;
+                            return;
                         }
-                    }
-                    else{
-                        if(getConstants()->useRefereeSuggestions()) {
+                    } else {
+                        if (getConstants()->useRefereeSuggestions()) {
                             // If occurred penalty or goal kick, send an goal suggestion
-                            if(!_ballInside){
+                            if (!_ballInside) {
                                 emit emitSuggestion("GOAL", _possibleGoalTeam);
-                                emit emitSuggestion("FREE_BALL", VSSRef::Color::NONE, Utils::getBallQuadrant(getVision()->getBallPosition()));
+                                emit emitSuggestion(
+                                    "FREE_BALL", VSSRef::Color::NONE,
+                                    Utils::getBallQuadrant(getVision()->getBallPosition()));
                                 _ballInside = true;
                             }
 
                             // Send also an suggestion of free ball
-                            return ;
+                            return;
                         }
                     }
                 } else {
-                    if(_possibleGoalTeam != i){
+                    if (_possibleGoalTeam != i) {
                         _ballInside = false;
                     }
                 }
             }
 
-            if(_possibleGoalKick || _possiblePenalty) {
+            if (_possibleGoalKick || _possiblePenalty) {
                 // Add game on suggestion if not possible goal
-                if(!_possibleGoal && getConstants()->useRefereeSuggestions()) {
+                if (!_possibleGoal && getConstants()->useRefereeSuggestions()) {
                     emit emitSuggestion("GAME_ON");
                 }
 
                 // If any of them occurred, send HALT command
-                if(getConstants()->useRefereeSuggestions()) {
+                if (getConstants()->useRefereeSuggestions()) {
                     // setPenaltiesInfo(VSSRef::Foul::HALT);
                     // emit foulOccured();
                     _isPlayRunning = false;
-                    return ;
-                }
-                else {
+                    return;
+                } else {
                     // Check priority
-                    if(_possibleGoal) {
-                        // Possible goal, possible goal kick and not possible penalty, priority: GOAL_KICK
-                        if(_possibleGoalKick && !_possiblePenalty) {
+                    if (_possibleGoal) {
+                        // Possible goal, possible goal kick and not possible penalty, priority:
+                        // GOAL_KICK
+                        if (_possibleGoalKick && !_possiblePenalty) {
                             setPenaltiesInfo(VSSRef::Foul::GOAL_KICK, _possibleGoalKickTeam);
-                            std::cout << Text::purple("[DEBUG] ", true) + Text::bold(VSSRef::Color_Name(_checkerTwoAtk->attackingTeam()) + " two attacking time: " + std::to_string(_checkerTwoAtk->getTimer())) + '\n';
+                            std::cout
+                                << Text::purple("[DEBUG] ", true) +
+                                       Text::bold(
+                                           VSSRef::Color_Name(_checkerTwoAtk->attackingTeam()) +
+                                           " two attacking time: " +
+                                           std::to_string(_checkerTwoAtk->getTimer())) +
+                                       '\n';
                             emit foulOccured();
-                            return ;
+                            return;
                         }
-                        // Possible goal, possible penalty and not possible goal kick, priority: GOAL
-                        else if(!_possibleGoalKick && _possiblePenalty) {
+                        // Possible goal, possible penalty and not possible goal kick, priority:
+                        // GOAL
+                        else if (!_possibleGoalKick && _possiblePenalty) {
                             emit emitGoal(_possibleGoalTeam);
 
-                            setPenaltiesInfo(VSSRef::Foul::KICKOFF, (_possibleGoalTeam == VSSRef::Color::BLUE) ? VSSRef::Color::YELLOW : VSSRef::Color::BLUE, VSSRef::Quadrant::NO_QUADRANT);
+                            setPenaltiesInfo(VSSRef::Foul::KICKOFF,
+                                             (_possibleGoalTeam == VSSRef::Color::BLUE)
+                                                 ? VSSRef::Color::YELLOW
+                                                 : VSSRef::Color::BLUE,
+                                             VSSRef::Quadrant::NO_QUADRANT);
                             emit foulOccured();
-                            return ;
+                            return;
                         }
-                        // Possible goal, possible penalty and possible goal kick... priority: the later
-                        else if(_possibleGoalKick && _possiblePenalty) {
+                        // Possible goal, possible penalty and possible goal kick... priority: the
+                        // later
+                        else if (_possibleGoalKick && _possiblePenalty) {
                             // Take the most later foul
                             float bestTime = 0.0f;
 
-                            if(_checkerTwoAtk->getTimer() >= bestTime) {
+                            if (_checkerTwoAtk->getTimer() >= bestTime) {
                                 bestTime = _checkerTwoAtk->getTimer();
                                 setPenaltiesInfo(VSSRef::Foul::GOAL_KICK, _possibleGoalKickTeam);
                             }
 
-                            if(_checkerTwoDef->getTimer() >= bestTime) {
+                            if (_checkerTwoDef->getTimer() >= bestTime) {
                                 bestTime = _checkerTwoDef->getTimer();
                                 setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _possiblePenaltyTeam);
                             }
 
-                            std::cout << Text::purple("[DEBUG] ", true) + Text::bold(VSSRef::Color_Name(_possibleGoalKickTeam) + " two attacking time: " + std::to_string(_checkerTwoAtk->getTimer())) + '\n';
-                            std::cout << Text::purple("[DEBUG] ", true) + Text::bold(VSSRef::Color_Name(_possiblePenaltyTeam) + " two defending time: " + std::to_string(_checkerTwoDef->getTimer())) + '\n';
+                            std::cout
+                                << Text::purple("[DEBUG] ", true) +
+                                       Text::bold(VSSRef::Color_Name(_possibleGoalKickTeam) +
+                                                  " two attacking time: " +
+                                                  std::to_string(_checkerTwoAtk->getTimer())) +
+                                       '\n';
+                            std::cout
+                                << Text::purple("[DEBUG] ", true) +
+                                       Text::bold(VSSRef::Color_Name(_possiblePenaltyTeam) +
+                                                  " two defending time: " +
+                                                  std::to_string(_checkerTwoDef->getTimer())) +
+                                       '\n';
 
                             emit foulOccured();
-                            return ;
+                            return;
                         }
                     }
                     // If no possible goal occurred
                     else {
-                        if(_possibleGoalKick && !_possiblePenalty) {
+                        if (_possibleGoalKick && !_possiblePenalty) {
                             setPenaltiesInfo(VSSRef::Foul::GOAL_KICK, _possibleGoalKickTeam);
                             emit foulOccured();
-                            return ;
-                        }
-                        else if(!_possibleGoalKick && _possiblePenalty) {
+                            return;
+                        } else if (!_possibleGoalKick && _possiblePenalty) {
                             setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _possiblePenaltyTeam);
                             emit foulOccured();
-                            return ;
-                        }
-                        else {
+                            return;
+                        } else {
                             // Take the most later foul
                             float bestTime = 0.0f;
 
-                            if(_checkerTwoAtk->getTimer() >= bestTime) {
+                            if (_checkerTwoAtk->getTimer() >= bestTime) {
                                 bestTime = _checkerTwoAtk->getTimer();
                                 setPenaltiesInfo(VSSRef::Foul::GOAL_KICK, _possibleGoalKickTeam);
                             }
 
-                            if(_checkerTwoDef->getTimer() >= bestTime) {
+                            if (_checkerTwoDef->getTimer() >= bestTime) {
                                 bestTime = _checkerTwoDef->getTimer();
                                 setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _possiblePenaltyTeam);
                             }
 
-                            std::cout << Text::purple("[DEBUG] ", true) + Text::bold(VSSRef::Color_Name(_possibleGoalKickTeam) + " two attacking time: " + std::to_string(_checkerTwoAtk->getTimer())) + '\n';
-                            std::cout << Text::purple("[DEBUG] ", true) + Text::bold(VSSRef::Color_Name(_possiblePenaltyTeam) + " two defending time: " + std::to_string(_checkerTwoDef->getTimer())) + '\n';
+                            std::cout
+                                << Text::purple("[DEBUG] ", true) +
+                                       Text::bold(VSSRef::Color_Name(_possibleGoalKickTeam) +
+                                                  " two attacking time: " +
+                                                  std::to_string(_checkerTwoAtk->getTimer())) +
+                                       '\n';
+                            std::cout
+                                << Text::purple("[DEBUG] ", true) +
+                                       Text::bold(VSSRef::Color_Name(_possiblePenaltyTeam) +
+                                                  " two defending time: " +
+                                                  std::to_string(_checkerTwoDef->getTimer())) +
+                                       '\n';
 
                             emit foulOccured();
-                            return ;
+                            return;
                         }
                     }
                 }
 
                 // Debug
-                //std::cout << Text::red("[PLAY] ", true) + Text::bold("Possible goal: " + std::to_string(_possibleGoal) + ", Possible penalty: " + std::to_string(_possiblePenalty) + " and Possible goalkick: " + std::to_string(_possibleGoalKick)) + '\n';
-            }
-            else {
-                if(_isPenaltyShootout) {
+                // std::cout << Text::red("[PLAY] ", true) + Text::bold("Possible goal: " +
+                // std::to_string(_possibleGoal) + ", Possible penalty: " +
+                // std::to_string(_possiblePenalty) + " and Possible goalkick: " +
+                // std::to_string(_possibleGoalKick)) + '\n';
+            } else {
+                if (_isPenaltyShootout) {
                     setNextTeam();
-                    setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _penaltyTeam, VSSRef::Quadrant::NO_QUADRANT);
+                    setPenaltiesInfo(VSSRef::Foul::PENALTY_KICK, _penaltyTeam,
+                                     VSSRef::Quadrant::NO_QUADRANT);
                     emit foulOccured();
-                    return ;
+                    return;
                 }
             }
 
             // Reset running control var
             _isPlayRunning = false;
-        }
-        else {
+        } else {
             // Reset control vars
             _possiblePenalty = false;
             _possibleGoalKick = false;

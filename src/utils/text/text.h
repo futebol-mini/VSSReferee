@@ -3,9 +3,8 @@
 
 #include <iostream>
 
-class Text
-{
-public:
+class Text {
+  public:
     Text();
 
     static std::string center(std::string s);

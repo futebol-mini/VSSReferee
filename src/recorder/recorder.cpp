@@ -1,17 +1,14 @@
 #include "recorder.h"
 
-Recorder::Recorder(QString fileName, QString visionAddress, quint16 visionPort, QString refereeAddress, quint16 refereePort) {
+#include <utility>
+
+Recorder::Recorder(QString fileName, QString visionAddress, quint16 visionPort,
+                   QString refereeAddress, quint16 refereePort)
+    : _fileName(std::move(fileName)), _refereeAddress(std::move(refereeAddress)),
+      _refereePort(refereePort), _visionAddress(std::move(visionAddress)), _visionPort(visionPort) {
     // Set objects as nullptr
-    _file = nullptr;
-    _visionSocket = nullptr;
-    _refereeSocket = nullptr;
 
     // Take vars
-    _fileName = fileName;
-    _visionAddress = visionAddress;
-    _visionPort = visionPort;
-    _refereeAddress = refereeAddress;
-    _refereePort = refereePort;
 
     // Open file
     openFile();
@@ -22,9 +19,9 @@ Recorder::Recorder(QString fileName, QString visionAddress, quint16 visionPort, 
 }
 
 Recorder::~Recorder() {
-    if(_file == nullptr) {
+    if (_file == nullptr) {
         // Closing file
-        if(_file->isOpen()) {
+        if (_file->isOpen()) {
             _file->close();
         }
 
@@ -32,28 +29,28 @@ Recorder::~Recorder() {
         delete _file;
     }
 
-    if(_visionSocket != nullptr) {
+    if (_visionSocket != nullptr) {
         // Closing socket
-        if(_visionSocket->isOpen()) {
+        if (_visionSocket->isOpen()) {
             _visionSocket->close();
         }
 
         // Delete it
         delete _visionSocket;
 
-        std::cout << Text::cyan("[VISION] " , true) + Text::bold("Client finished.") + '\n';
+        std::cout << Text::cyan("[VISION] ", true) + Text::bold("Client finished.") + '\n';
     }
 
-    if(_refereeSocket != nullptr) {
+    if (_refereeSocket != nullptr) {
         // Closing socket
-        if(_refereeSocket->isOpen()) {
+        if (_refereeSocket->isOpen()) {
             _refereeSocket->close();
         }
 
         // Delete it
         delete _refereeSocket;
 
-        std::cout << Text::cyan("[REFEREE] " , true) + Text::bold("Client finished.") + '\n';
+        std::cout << Text::cyan("[REFEREE] ", true) + Text::bold("Client finished.") + '\n';
     }
 }
 
@@ -66,13 +63,17 @@ void Recorder::openFile() {
     directory.mkdir(PROJECT_PATH + QString("/logs/"));
 
     // Open file
-    if(!_file->open(QIODevice::WriteOnly)) {
-        std::cout << Text::cyan("[RECORDER] ", true) + Text::red("Error opening file '" + _fileName.toStdString() + "'", true) + '\n';
-        return ;
+    if (!_file->open(QIODevice::WriteOnly)) {
+        std::cout << Text::cyan("[RECORDER] ", true) +
+                         Text::red("Error opening file '" + _fileName.toStdString() + "'", true) +
+                         '\n';
+        return;
     }
 
     // Debug
-    std::cout << Text::cyan("[RECORDER] ", true) + Text::bold("Opened and logging in file '" + _fileName.toStdString() + "'") + '\n';
+    std::cout << Text::cyan("[RECORDER] ", true) +
+                     Text::bold("Opened and logging in file '" + _fileName.toStdString() + "'") +
+                     '\n';
 }
 
 void Recorder::connectToVisionNetwork() {
@@ -80,26 +81,29 @@ void Recorder::connectToVisionNetwork() {
     _visionSocket = new QUdpSocket();
 
     // Binding in defined network
-    if(_visionSocket->bind(QHostAddress(_visionAddress), _visionPort, QUdpSocket::ShareAddress) == false) {
-        std::cout << Text::purple("[VISION] ", true) + Text::red("Error while binding socket.", true) + '\n';
-        return ;
+    if (_visionSocket->bind(QHostAddress(_visionAddress), _visionPort, QUdpSocket::ShareAddress) ==
+        false) {
+        std::cout << Text::purple("[VISION] ", true) +
+                         Text::red("Error while binding socket.", true) + '\n';
+        return;
     }
 
     // Joining multicast group
-    if(_visionSocket->joinMulticastGroup(QHostAddress(_visionAddress)) == false) {
-        std::cout << Text::purple("[VISION] ", true) + Text::red("Error while joining multicast group.") + '\n';
-        return ;
+    if (_visionSocket->joinMulticastGroup(QHostAddress(_visionAddress)) == false) {
+        std::cout << Text::purple("[VISION] ", true) +
+                         Text::red("Error while joining multicast group.") + '\n';
+        return;
     }
 
     // Connect readyRead signal
-    QObject::connect(_visionSocket, &QUdpSocket::readyRead, [this](){
+    QObject::connect(_visionSocket, &QUdpSocket::readyRead, [this]() {
         // Creating datagram var
         QNetworkDatagram datagram;
 
         // Reading datagram and checking if it is valid
         datagram = _visionSocket->receiveDatagram();
-        if(!datagram.isValid()) {
-            return ;
+        if (!datagram.isValid()) {
+            return;
         }
 
         // Prepare vars
@@ -109,7 +113,10 @@ void Recorder::connectToVisionNetwork() {
         writeDatagram(MESSAGE_VISION, data, timeStamp);
     });
 
-    std::cout << Text::cyan("[VISION] ", true) + Text::bold("Started at address '" + _visionAddress.toStdString() + "' and port '" + std::to_string(_visionPort) + "'.") + '\n';
+    std::cout << Text::cyan("[VISION] ", true) +
+                     Text::bold("Started at address '" + _visionAddress.toStdString() +
+                                "' and port '" + std::to_string(_visionPort) + "'.") +
+                     '\n';
 }
 
 void Recorder::connectToRefereeNetwork() {
@@ -117,26 +124,29 @@ void Recorder::connectToRefereeNetwork() {
     _refereeSocket = new QUdpSocket();
 
     // Binding in defined network
-    if(_refereeSocket->bind(QHostAddress(_refereeAddress), _refereePort, QUdpSocket::ShareAddress) == false) {
-        std::cout << Text::purple("[REFEREE] ", true) + Text::red("Error while binding socket.", true) + '\n';
-        return ;
+    if (_refereeSocket->bind(QHostAddress(_refereeAddress), _refereePort,
+                             QUdpSocket::ShareAddress) == false) {
+        std::cout << Text::purple("[REFEREE] ", true) +
+                         Text::red("Error while binding socket.", true) + '\n';
+        return;
     }
 
     // Joining multicast group
-    if(_refereeSocket->joinMulticastGroup(QHostAddress(_refereeAddress)) == false) {
-        std::cout << Text::purple("[REFEREE] ", true) + Text::red("Error while joining multicast group.") + '\n';
-        return ;
+    if (_refereeSocket->joinMulticastGroup(QHostAddress(_refereeAddress)) == false) {
+        std::cout << Text::purple("[REFEREE] ", true) +
+                         Text::red("Error while joining multicast group.") + '\n';
+        return;
     }
 
     // Connect readyRead signal
-    QObject::connect(_refereeSocket, &QUdpSocket::readyRead, [this](){
+    QObject::connect(_refereeSocket, &QUdpSocket::readyRead, [this]() {
         // Creating datagram var
         QNetworkDatagram datagram;
 
         // Reading datagram and checking if it is valid
         datagram = _refereeSocket->receiveDatagram();
-        if(!datagram.isValid()) {
-            return ;
+        if (!datagram.isValid()) {
+            return;
         }
 
         // Prepare vars
@@ -146,7 +156,10 @@ void Recorder::connectToRefereeNetwork() {
         writeDatagram(MESSAGE_REFEREE, data, timeStamp);
     });
 
-    std::cout << Text::cyan("[REFEREE] ", true) + Text::bold("Started at address '" + _refereeAddress.toStdString() + "' and port '" + std::to_string(_refereePort) + "'.") + '\n';
+    std::cout << Text::cyan("[REFEREE] ", true) +
+                     Text::bold("Started at address '" + _refereeAddress.toStdString() +
+                                "' and port '" + std::to_string(_refereePort) + "'.") +
+                     '\n';
 }
 
 void Recorder::writeDatagram(MessageType messageType, QByteArray data, qint64 timeStamp) {
@@ -154,7 +167,7 @@ void Recorder::writeDatagram(MessageType messageType, QByteArray data, qint64 ti
 
     QDataStream stream(_file);
     stream << timeStamp;
-    stream << (quint32) messageType;
+    stream << (quint32)messageType;
     stream << data;
 
     _fileMutex.unlock();

@@ -1,11 +1,10 @@
 #include "refereecore.h"
 
-RefereeCore::RefereeCore(Constants *constants) {
+RefereeCore::RefereeCore(Constants *constants)
+    : _constants(constants), _world(new World(getConstants())) {
     // Taking constants
-    _constants = constants;
 
     // Creating world pointer
-    _world = new World(getConstants());
 
     // Register Referee metatypes
     qRegisterMetaType<VSSRef::Color>("VSSRef::Color");
@@ -48,7 +47,9 @@ void RefereeCore::start() {
     _soccerView->getFieldView()->setConstants(_constants);
 
     // Creating replacer pointer
-    _replacer = new Replacer(QString(PROJECT_PATH) + "/src/world/entities/replacer/replacements.json", _vision, _field, getConstants());
+    _replacer =
+        new Replacer(QString(PROJECT_PATH) + "/src/world/entities/replacer/replacements.json",
+                     _vision, _field, getConstants());
 
     // Creating referee pointer and adding it to world with priority 1
     _referee = new Referee(_vision, _replacer, _soccerView, getConstants());
@@ -58,13 +59,21 @@ void RefereeCore::start() {
     _world->addEntity(_replacer, 0);
 
     // Make GUI connections with modules
-    QObject::connect(_soccerView, SIGNAL(sendCollisionDecision()), _referee, SLOT(processCollisionDecision()));
-    QObject::connect(_referee, SIGNAL(sendFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant)), _soccerView, SLOT(takeFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant)));
-    QObject::connect(_referee, SIGNAL(sendTimestamp(float, float, VSSRef::Half, bool)), _soccerView, SLOT(takeTimeStamp(float, float, VSSRef::Half, bool)));
-    QObject::connect(_soccerView, SIGNAL(sendManualFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool)), _referee, SLOT(takeManualFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool)));
-    QObject::connect(_vision, SIGNAL(visionUpdated()), _soccerView->getFieldView(), SLOT(updateField()));
-    QObject::connect(_soccerView, SIGNAL(changeVision(bool)), _vision, SLOT(visionPacketChanged(bool)));
-    QObject::connect(_soccerView, SIGNAL(changeVision(bool)), _referee, SLOT(visionPacketChanged(bool)));
+    QObject::connect(_soccerView, SIGNAL(sendCollisionDecision()), _referee,
+                     SLOT(processCollisionDecision()));
+    QObject::connect(_referee, SIGNAL(sendFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant)),
+                     _soccerView, SLOT(takeFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant)));
+    QObject::connect(_referee, SIGNAL(sendTimestamp(float, float, VSSRef::Half, bool)), _soccerView,
+                     SLOT(takeTimeStamp(float, float, VSSRef::Half, bool)));
+    QObject::connect(
+        _soccerView, SIGNAL(sendManualFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool)),
+        _referee, SLOT(takeManualFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool)));
+    QObject::connect(_vision, SIGNAL(visionUpdated()), _soccerView->getFieldView(),
+                     SLOT(updateField()));
+    QObject::connect(_soccerView, SIGNAL(changeVision(bool)), _vision,
+                     SLOT(visionPacketChanged(bool)));
+    QObject::connect(_soccerView, SIGNAL(changeVision(bool)), _referee,
+                     SLOT(visionPacketChanged(bool)));
 
     // Show GUI
     _soccerView->show();
@@ -78,11 +87,11 @@ void RefereeCore::stop() {
     _world->stopAndDeleteEntities();
 }
 
-Constants* RefereeCore::getConstants() {
-    if(_constants == nullptr) {
-        std::cout << Text::red("[ERROR] ", true) << Text::bold("Constants with nullptr value at RefereeCore") + '\n';
-    }
-    else {
+Constants *RefereeCore::getConstants() {
+    if (_constants == nullptr) {
+        std::cout << Text::red("[ERROR] ", true)
+                  << Text::bold("Constants with nullptr value at RefereeCore") + '\n';
+    } else {
         return _constants;
     }
 

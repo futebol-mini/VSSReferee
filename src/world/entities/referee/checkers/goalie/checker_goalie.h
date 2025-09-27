@@ -3,27 +3,26 @@
 
 #include <src/world/entities/referee/checkers/checker.h>
 
-class Checker_Goalie : public Checker
-{
+class Checker_Goalie : public Checker {
     Q_OBJECT
-public:
+  public:
     // Using Checker constructor
     using Checker::Checker;
 
     // Foul inherited methods
-    QString name();
-    void configure();
-    void run();
+    QString name() override;
+    void configure() override;
+    void run() override;
 
-private:
+  private:
     // Player timers
-    QHash<VSSRef::Color, QHash<quint8, Timer*>*> _timers;
-    QHash<VSSRef::Color, QHash<quint8, float>*> _elapsedTimeInGoal;
+    QHash<VSSRef::Color, QHash<quint8, Timer *> *> _timers;
+    QHash<VSSRef::Color, QHash<quint8, float> *> _elapsedTimeInGoal;
 
     // Goalies
     void updateGoalies();
 
-signals:
+  signals:
     void updateGoalie(VSSRef::Color color, quint8 playerId);
 };
 

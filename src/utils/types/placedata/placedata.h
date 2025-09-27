@@ -1,12 +1,11 @@
 #ifndef PLACEDATA_H
 #define PLACEDATA_H
 
-#include <src/utils/types/position/position.h>
 #include <src/utils/types/angle/angle.h>
+#include <src/utils/types/position/position.h>
 
-class PlaceData
-{
-public:
+class PlaceData {
+  public:
     PlaceData();
     PlaceData(Position position, Angle orientation);
 
@@ -14,7 +13,7 @@ public:
     Angle getOrientation();
     void reflect();
 
-private:
+  private:
     Position _position;
     Angle _orientation;
 };
