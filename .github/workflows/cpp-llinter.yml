@@ -1,0 +1,35 @@
+name: cpp-linter
+on:
+  pull_request:
+  push:
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  cpp-linter:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libc6 wget lsb-release build-essential software-properties-common gnupg cmake qtbase5-dev qt5-qmake libqt5opengl5-dev libprotobuf-dev mesa-common-dev libglu1-mesa-dev protobuf-compiler
+
+      - name: Generate build files
+        run: mkdir build && cd build && cmake .. && make proto_msgs_autogen VSSReferee_autogen
+
+      - uses: cpp-linter/cpp-linter-action@v2
+        id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          ignore: '.github|build'
+          style: ''  # disable clang-format checks.
+          tidy-checks: 'cppcoreguidelines-*' # Use .clang-tidy config file.
+          step-summary: true
+          thread-comments: false
+          no-lgtm: false
+          files-changed-only: false
+          database: 'build/'
+          verbosity: 'debug'
