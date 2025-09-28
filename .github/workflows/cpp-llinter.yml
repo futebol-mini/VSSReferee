@@ -26,7 +26,7 @@ jobs:
         with:
           ignore: '.github|build'
           style: ''  # disable clang-format checks.
-          tidy-checks: 'cppcoreguidelines-*' # Use .clang-tidy config file.
+          tidy-checks: 'cppcoreguidelines-*,bugprone-*,modernize-*,-modernize-use-trailing-return-type' # Use .clang-tidy config file.
           step-summary: true
           thread-comments: false
           no-lgtm: false
