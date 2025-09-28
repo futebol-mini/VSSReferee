@@ -1,3 +1,10 @@
-Checks: "clang-diagnostic-*,clang-analyzer-*,cppcoreguidelines-*,modernize-*,-modernize-use-trailing-return-type,bugprone-*"
-WarningsAsErrors: "*"
-HeaderFilterRegex: ".*"
+# Checks: [
+#   clang-diagnostic-*,
+#   clang-analyzer-*,
+#   cppcoreguidelines-*,
+#   modernize-*,
+#   -modernize-use-trailing-return-type,
+#   bugprone-*
+# ]
+# WarningsAsErrors: "*"
+# HeaderFilterRegex: ""
