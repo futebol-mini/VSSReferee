@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  cpp-linter:
+  cpp-linter-changes-only:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v5
@@ -24,15 +24,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          ignore: '.github|build'
-          style: ''  # disable clang-format checks.
-          tidy-checks: '' # Use .clang-tidy config file.
+          ignore: ".github|build"
+          style: "" # disable clang-format checks.
+          tidy-checks: "" # Use .clang-tidy config file.
           step-summary: true
-          thread-comments: false
+          thread-comments: true
           no-lgtm: false
-          files-changed-only: false
-          database: 'build/'
-          verbosity: 'debug'
+          files-changed-only: true
+          database: "build/"
+          verbosity: "debug"
 
       - name: Fail fast
         if: steps.linter.outputs.checks-failed > 0
