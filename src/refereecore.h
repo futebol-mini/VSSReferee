@@ -1,16 +1,15 @@
 #ifndef REFEREECORE_H
 #define REFEREECORE_H
 
-#include <src/utils/utils.h>
 #include <src/soccerview/soccerview.h>
-#include <src/world/world.h>
-#include <src/world/entities/vision/vision.h>
+#include <src/utils/utils.h>
 #include <src/world/entities/referee/referee.h>
 #include <src/world/entities/replacer/replacer.h>
+#include <src/world/entities/vision/vision.h>
+#include <src/world/world.h>
 
-class RefereeCore
-{
-public:
+class RefereeCore {
+  public:
     RefereeCore(Constants *constants);
     ~RefereeCore();
 
@@ -18,20 +17,20 @@ public:
     void start();
     void stop();
 
-private:
+  private:
     // Modules
     World *_world;
-    Vision *_vision;
-    Referee *_referee;
-    Replacer *_replacer;
+    Vision *_vision{};
+    Referee *_referee{};
+    Replacer *_replacer{};
 
     // GUI
-    SoccerView *_soccerView;
-    Field *_field;
+    SoccerView *_soccerView{};
+    Field *_field{};
 
     // Constants
     Constants *_constants;
-    Constants* getConstants();
+    Constants *getConstants();
 };
 
 #endif // REFEREECORE_H

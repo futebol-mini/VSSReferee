@@ -1,21 +1,21 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include <iostream>
 #include <assert.h>
+#include <iostream>
 
 class Matrix {
 
-private:
+  private:
     unsigned _lines;
     unsigned _columns;
-    float **_matrix;
+    float **_matrix{nullptr};
     void allocate();
     void deallocate();
     void initialize();
 
-public:
-    Matrix(unsigned lines=0, unsigned columns=0);
+  public:
+    Matrix(unsigned lines = 0, unsigned columns = 0);
     Matrix(const Matrix &M);
     ~Matrix();
 
@@ -50,6 +50,5 @@ public:
     void operator-=(const Matrix &M);
     void operator-=(float k);
     void operator*=(float k);
-
 };
 #endif // MATRIX_H

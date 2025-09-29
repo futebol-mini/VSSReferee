@@ -3,9 +3,8 @@
 
 #include <src/utils/timer/timer.h>
 
-class LossFilter
-{
-public:
+class LossFilter {
+  public:
     LossFilter();
 
     // Noise control
@@ -18,12 +17,13 @@ public:
 
     // Setters
     static void setLossTime(float lossTime);
-private:
+
+  private:
     // Timer
     Timer _timer;
 
     // Params
-    bool _isInitialized;
+    bool _isInitialized{false};
     static float _filterTime;
 };
 

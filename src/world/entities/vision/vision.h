@@ -1,22 +1,21 @@
 #ifndef VISION_H
 #define VISION_H
 
-#include <QUdpSocket>
 #include <QNetworkDatagram>
 #include <QReadWriteLock>
+#include <QUdpSocket>
 
-#include <src/utils/types/object/object.h>
 #include <include/vssref_common.pb.h>
 #include <include/wrapper.pb.h>
-#include <src/world/entities/entity.h>
 #include <src/constants/constants.h>
+#include <src/utils/types/object/object.h>
+#include <src/world/entities/entity.h>
 
-class Vision : public Entity
-{
+class Vision : public Entity {
     Q_OBJECT
-public:
+  public:
     Vision(Constants *constants);
-    ~Vision();
+    ~Vision() override;
 
     // Getters
     QList<quint8> getAvailablePlayers(VSSRef::Color teamColor);
@@ -26,18 +25,18 @@ public:
     Position getBallPosition();
     Velocity getBallVelocity();
 
-private:
+  private:
     // Entity inherited methods
-    void initialization();
-    void loop();
-    void finalization();
+    void initialization() override;
+    void loop() override;
+    void finalization() override;
 
     // Constants
     Constants *_constants;
-    Constants* getConstants();
+    Constants *getConstants();
 
     // Socket to receive vision data
-    QUdpSocket *_visionClient;
+    QUdpSocket *_visionClient{};
     void bindAndConnect();
 
     // Network
@@ -46,9 +45,9 @@ private:
     bool _isFIRAVision;
 
     // Objects
-    Object *_ballObject;
-    QMap<VSSRef::Color, QHash<quint8, Object*>*> _objects;
-    QMap<VSSRef::Color, QHash<quint8, bool>*> _objectsControl;
+    Object *_ballObject{};
+    QMap<VSSRef::Color, QHash<quint8, Object *> *> _objects;
+    QMap<VSSRef::Color, QHash<quint8, bool> *> _objectsControl;
     void initObjects();
     void deleteObjects();
     void clearObjectsControl();
@@ -61,10 +60,10 @@ private:
 
     std::string visionType = "[VISION] ";
 
-signals:
+  signals:
     void visionUpdated();
 
-public slots:
+  public slots:
     void visionPacketChanged(bool isFIRAVision);
 };
 

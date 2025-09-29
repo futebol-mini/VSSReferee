@@ -3,9 +3,8 @@
 
 #include <src/utils/timer/timer.h>
 
-class NoiseFilter
-{
-public:
+class NoiseFilter {
+  public:
     NoiseFilter();
 
     // Noise control
@@ -19,12 +18,12 @@ public:
     // Setters
     static void setNoiseTime(float noiseTime);
 
-private:
+  private:
     // Timer
     Timer _timer;
 
     // Params
-    bool _isInitialized;
+    bool _isInitialized{false};
     static float _filterTime;
 };
 

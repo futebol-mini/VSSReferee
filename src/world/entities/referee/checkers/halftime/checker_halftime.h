@@ -6,17 +6,16 @@
 // Abstract Referee
 class Referee;
 
-class Checker_HalfTime : public Checker
-{
+class Checker_HalfTime : public Checker {
     Q_OBJECT
-public:
+  public:
     // Using Checker constructor
     using Checker::Checker;
 
     // Foul inherited methods
-    QString name();
-    void configure();
-    void run();
+    QString name() override;
+    void configure() override;
+    void run() override;
 
     // Referee set
     void setReferee(Referee *referee);
@@ -29,23 +28,23 @@ public:
     void setIsOvertime(bool isOvertime);
     void setIsPenaltyShootout(bool isPenaltyShootout);
 
-private:
+  private:
     // Timer
     Timer _timer;
 
     // Seconds
-    float _secondsPassed;
+    float _secondsPassed{};
     QMutex _secondsMutex;
-    bool _isOvertime;
-    bool _isPenaltyShootout;
+    bool _isOvertime{};
+    bool _isPenaltyShootout{};
 
     // Referee
-    Referee *_referee;
+    Referee *_referee{};
 
-signals:
+  signals:
     void halfPassed();
 
-public slots:
+  public slots:
     void receiveTime(int seconds);
 };
 

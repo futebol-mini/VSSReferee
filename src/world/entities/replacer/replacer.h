@@ -1,35 +1,34 @@
 ﻿#ifndef REPLACER_H
 #define REPLACER_H
 
+#include <include/packet.pb.h>
+#include <include/vssref_placement.pb.h>
 #include <src/utils/types/field/field.h>
+#include <src/utils/types/placedata/placedata.h>
 #include <src/world/entities/entity.h>
 #include <src/world/entities/vision/vision.h>
-#include <include/vssref_placement.pb.h>
-#include <include/packet.pb.h>
-#include <src/utils/types/placedata/placedata.h>
 
-class Replacer : public Entity
-{
+class Replacer : public Entity {
     Q_OBJECT
-public:
+  public:
     Replacer(QString replaceFileName, Vision *vision, Field *field, Constants *constants);
 
-protected:
+  protected:
     QVariantMap documentMap() { return _documentMap; }
 
-private:
+  private:
     // Entity inherited methods
-    void initialization();
-    void loop();
-    void finalization();
+    void initialization() override;
+    void loop() override;
+    void finalization() override;
 
     // Replacer Network
-    QUdpSocket *_replacerClient;
+    QUdpSocket *_replacerClient{};
     QString _replacerAddress;
     quint16 _replacerPort;
 
     // FIRASim Network
-    QUdpSocket *_firaClient;
+    QUdpSocket *_firaClient{};
     QString _firaAddress;
     quint16 _firaPort;
 
@@ -42,16 +41,17 @@ private:
 
     // Field
     Field *_field;
-    Field* getField();
+    Field *getField();
 
     // Constants
     Constants *_constants;
-    Constants* getConstants();
+    Constants *getConstants();
 
     // Placements <Foul, <Category, <Role, QVector<PlaceData>>>>
-    QMap<QString, QMap<QString, QMap<QString, QVector<PlaceData>>*>*> placements;
+    QMap<QString, QMap<QString, QMap<QString, QVector<PlaceData>> *> *> placements;
     QMap<QString, QVector<PlaceData>> getPlacementsByFoul(QString foul);
-    VSSRef::Frame getPlacementFrameByFoul(QString foul, VSSRef::Quadrant foulQuadrant, VSSRef::Color teamColor);
+    VSSRef::Frame getPlacementFrameByFoul(QString foul, VSSRef::Quadrant foulQuadrant,
+                                          VSSRef::Color teamColor);
     bool checkIfCollides(VSSRef::Frame blueFrame, VSSRef::Frame yellowFrame);
 
     // Internal placements file management
@@ -70,7 +70,7 @@ private:
     QMutex _goalieMutex;
 
     // Teleport
-    bool _teleport;
+    bool _teleport{};
 
     // Fouls management
     VSSRef::Foul _foul;
@@ -80,13 +80,13 @@ private:
     VSSRef::Color getFoulColor();
     VSSRef::Quadrant getFoulQuadrant();
     QMutex _foulMutex;
-    bool _foulProcessed;
+    bool _foulProcessed{};
 
     // Placement management
     QHash<VSSRef::Color, VSSRef::Frame> _placement;
     QHash<VSSRef::Color, bool> _placementStatus;
-    bool _isGoaliePlacedAtTop;
-    bool _forceDefault;
+    bool _isGoaliePlacedAtTop{};
+    bool _forceDefault{};
     void placeFrame(VSSRef::Frame frame);
     void placeOutside(VSSRef::Foul foul, VSSRef::Color oppositeTeam);
     VSSRef::Frame getTeamFrame(VSSRef::Color teamColor);
@@ -96,8 +96,8 @@ private:
     // Last data (maintain ball stopped)
     Position _lastBallPosition;
     Velocity _lastBallVelocity;
-    bool _placedLastPosition;
-    QHash<VSSRef::Color, QHash<quint8, fira_message::Robot*>*> _lastFrame;
+    bool _placedLastPosition{};
+    QHash<VSSRef::Color, QHash<quint8, fira_message::Robot *> *> _lastFrame;
     QMutex _lastDataMutex;
     void clearLastData();
 
@@ -106,11 +106,11 @@ private:
     VSSRef::Frame getOutsideFieldPlacement(VSSRef::Color teamColor);
     VSSRef::Frame getPenaltyShootoutPlacement(VSSRef::Color teamColor, bool placeAttacker);
 
-signals:
+  signals:
     void teamsPlaced();
     void teamsCollided(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool placeOutside);
 
-public slots:
+  public slots:
     void takeGoalie(VSSRef::Color color, quint8 playerId);
     void takeFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant);
     void takeTeleport(bool teleport);

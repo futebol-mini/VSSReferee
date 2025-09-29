@@ -1,16 +1,13 @@
 ﻿#include "soccerview.h"
 #include "ui_soccerview.h"
 
-#include <src/utils/text/text.h>
 #include <QStyleFactory>
 #include <QVariantAnimation>
+#include <src/utils/text/text.h>
 
-SoccerView::SoccerView(Constants *constants, QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::SoccerView)
-{
+SoccerView::SoccerView(Constants *constants, QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::SoccerView), _constants(constants) {
     // Set constants
-    _constants = constants;
 
     // Setup UI
     ui->setupUi(this);
@@ -21,9 +18,9 @@ SoccerView::SoccerView(Constants *constants, QWidget *parent) :
     setupButtons();
 
     // Disable suggestions if not enabled in constants
-//    if(!getConstants()->useRefereeSuggestions()) {
-//        ui->refereeSuggestions->setEnabled(false);
-//    }
+    //    if(!getConstants()->useRefereeSuggestions()) {
+    //        ui->refereeSuggestions->setEnabled(false);
+    //    }
 
     // Set scoreboard gameType
     ui->scoreboard->setTitle(getConstants()->gameType());
@@ -35,31 +32,20 @@ SoccerView::SoccerView(Constants *constants, QWidget *parent) :
     ui->sendToDiscord->setVisible(false);
 }
 
-SoccerView::~SoccerView()
-{
-    delete ui;
-}
+SoccerView::~SoccerView() { delete ui; }
 
-FieldView* SoccerView::getFieldView() {
-    return (ui->openGLWidget);
-}
+FieldView *SoccerView::getFieldView() { return (ui->openGLWidget); }
 
-QString SoccerView::getStage() {
-    return (ui->scoreboard->title());
-}
+QString SoccerView::getStage() { return (ui->scoreboard->title()); }
 
-int SoccerView::getLeftTeamGoals() {
-    return _leftTeamGoals;
-}
+int SoccerView::getLeftTeamGoals() { return _leftTeamGoals; }
 
-int SoccerView::getRightTeamGoals() {
-    return _rightTeamGoals;
-}
+int SoccerView::getRightTeamGoals() { return _rightTeamGoals; }
 
 void SoccerView::setTeams() {
 
     _teams = getConstants()->teams();
-    for(auto a : _teams) {
+    for (auto a : _teams) {
         ui->leftTeamBox->addItem(a);
         ui->rightTeamBox->addItem(a);
     }
@@ -67,7 +53,7 @@ void SoccerView::setTeams() {
 
 void SoccerView::setupTeams() {
     QString leftName, rightName;
-    
+
     leftName = ui->leftTeamBox->currentText();
     rightName = ui->rightTeamBox->currentText();
 
@@ -77,22 +63,26 @@ void SoccerView::setupTeams() {
 
     // Setup left logo
     QPixmap pixMap = QPixmap(":/teams/" + leftName.toLower() + ".png");
-    if(!pixMap.isNull()) {
+    if (!pixMap.isNull()) {
         ui->leftTeamLogo->setPixmap(pixMap);
-    }
-    else {
-        std::cout << Text::blue("[SOCCERVIEW] ", true) + Text::red("Failed to setup left team logo, set default.", true) + '\n';
-        ui->leftTeamLogo->setPixmap((getConstants()->blueIsLeftSide()) ? QPixmap(":/teams/defaultblue.png") : QPixmap(":/teams/defaultyellow.png"));
+    } else {
+        std::cout << Text::blue("[SOCCERVIEW] ", true) +
+                         Text::red("Failed to setup left team logo, set default.", true) + '\n';
+        ui->leftTeamLogo->setPixmap((getConstants()->blueIsLeftSide())
+                                        ? QPixmap(":/teams/defaultblue.png")
+                                        : QPixmap(":/teams/defaultyellow.png"));
     }
 
     // Setup right logo
     pixMap = QPixmap(":/teams/" + rightName.toLower() + ".png");
-    if(!pixMap.isNull()) {
+    if (!pixMap.isNull()) {
         ui->rightTeamLogo->setPixmap(pixMap);
-    }
-    else {
-        std::cout << Text::blue("[SOCCERVIEW] ", true) + Text::red("Failed to setup right team logo, set default.", true) + '\n';
-        ui->rightTeamLogo->setPixmap((getConstants()->blueIsLeftSide()) ? QPixmap(":/teams/defaultyellow.png") : QPixmap(":/teams/defaultblue.png"));
+    } else {
+        std::cout << Text::blue("[SOCCERVIEW] ", true) +
+                         Text::red("Failed to setup right team logo, set default.", true) + '\n';
+        ui->rightTeamLogo->setPixmap((getConstants()->blueIsLeftSide())
+                                         ? QPixmap(":/teams/defaultyellow.png")
+                                         : QPixmap(":/teams/defaultblue.png"));
     }
 
     // Set initial goals and call setupGoals
@@ -117,19 +107,23 @@ void SoccerView::setupGoals() {
     ui->leftTeamGoals->setText(QString("%1").arg(leftGoal));
     ui->rightTeamGoals->setText(QString("%1").arg(rightGoal));
 
-    std::cout << Text::blue("[SOCCERVIEW] ", true) + Text::red("Goals set to ", true) + Text::bold(QString("%1 x %2").arg(_leftTeamGoals).arg(_rightTeamGoals).toStdString()) + '\n';
+    std::cout
+        << Text::blue("[SOCCERVIEW] ", true) + Text::red("Goals set to ", true) +
+               Text::bold(
+                   QString("%1 x %2").arg(_leftTeamGoals).arg(_rightTeamGoals).toStdString()) +
+               '\n';
 }
 
 void SoccerView::setupButtons() {
 
     // Connecting vision buttons
-    connect(ui->SSLVision, &QPushButton::released, [this](){
+    connect(ui->SSLVision, &QPushButton::released, [this]() {
         ui->SSLVision->setChecked(true);
         ui->FIRAVision->setChecked(false);
         emit changeVision(false);
     });
 
-    connect(ui->FIRAVision, &QPushButton::released, [this](){
+    connect(ui->FIRAVision, &QPushButton::released, [this]() {
         ui->SSLVision->setChecked(false);
         ui->FIRAVision->setChecked(true);
         emit changeVision(true);
@@ -148,93 +142,95 @@ void SoccerView::setupButtons() {
     _buttons.push_back(ui->haltGame);
 
     // Connecting game control buttons
-    connect(ui->startGame, &QPushButton::released, [this](){
+    connect(ui->startGame, &QPushButton::released, [this]() {
         ui->startGame->setEnabled(false);
         ui->stopGame->setEnabled(true);
         ui->haltGame->setEnabled(true);
     });
 
-    connect(ui->stopGame, &QPushButton::released, [this](){
+    connect(ui->stopGame, &QPushButton::released, [this]() {
         ui->stopGame->setEnabled(false);
         ui->startGame->setEnabled(true);
         ui->haltGame->setEnabled(true);
     });
 
-    connect(ui->haltGame, &QPushButton::released, [this](){
+    connect(ui->haltGame, &QPushButton::released, [this]() {
         ui->startGame->setEnabled(false);
         ui->stopGame->setEnabled(true);
         ui->haltGame->setEnabled(false);
     });
 
     // Connecting goal buttons to lambda
-    connect(ui->addGoal, &QPushButton::released, [this](){
+    connect(ui->addGoal, &QPushButton::released, [this]() {
         // Take team to add
         VSSRef::Color calledColor = VSSRef::Color();
-        VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(), &calledColor);
+        VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(),
+                            &calledColor);
 
         // Add
         addGoal(calledColor);
     });
 
-    connect(ui->rmvGoal, &QPushButton::released, [this](){
+    connect(ui->rmvGoal, &QPushButton::released, [this]() {
         // Take team to add
         VSSRef::Color calledColor = VSSRef::Color();
-        VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(), &calledColor);
+        VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(),
+                            &calledColor);
 
         // Add
         removeGoal(calledColor);
     });
 
     // Connecting time buttons to lambda
-    connect(ui->addMinute, &QPushButton::released, [this](){
-        emit addTime(60);
-    });
+    connect(ui->addMinute, &QPushButton::released, [this]() { emit addTime(60); });
 
-    connect(ui->addSecond, &QPushButton::released, [this](){
-        emit addTime(1);
-    });
+    connect(ui->addSecond, &QPushButton::released, [this]() { emit addTime(1); });
 
     // Connecting teleport button to lambda
-    connect(ui->enableTeleport, &QPushButton::released, [this](){
+    connect(ui->enableTeleport, &QPushButton::released, [this]() {
         ui->enableTeleport->setChecked(true);
         ui->disableTeleport->setChecked(false);
         emit sendTeleport(true);
     });
 
-    connect(ui->disableTeleport, &QPushButton::released, [this](){
+    connect(ui->disableTeleport, &QPushButton::released, [this]() {
         ui->enableTeleport->setChecked(false);
         ui->disableTeleport->setChecked(true);
         emit sendTeleport(false);
     });
 
     // Connecting command buttons that need to place outside
-    connect(ui->penaltyShootout, &QPushButton::released, [this](){
+    connect(ui->penaltyShootout, &QPushButton::released, [this]() {
         VSSRef::Color calledColor = VSSRef::Color();
-        VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(), &calledColor);
+        VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(),
+                            &calledColor);
 
-        emit sendManualFoul(VSSRef::Foul::PENALTY_KICK, calledColor, VSSRef::Quadrant::NO_QUADRANT, true);
+        emit sendManualFoul(VSSRef::Foul::PENALTY_KICK, calledColor, VSSRef::Quadrant::NO_QUADRANT,
+                            true);
     });
 
-    connect(ui->rmvField, &QPushButton::released, [this](){
+    connect(ui->rmvField, &QPushButton::released, [this]() {
         VSSRef::Color calledColor = VSSRef::Color();
-        VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(), &calledColor);
+        VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(),
+                            &calledColor);
 
-        emit sendManualFoul(VSSRef::Foul::KICKOFF, calledColor, VSSRef::Quadrant::NO_QUADRANT, true);
+        emit sendManualFoul(VSSRef::Foul::KICKOFF, calledColor, VSSRef::Quadrant::NO_QUADRANT,
+                            true);
     });
 
     // Connect foul buttons to signal mapper
-    for(int i = 0; i < _buttons.size(); i++) {
-        QPushButton *button = _buttons.at(i);
-
+    for (auto button : _buttons) {
         connect(button, SIGNAL(released()), _buttonsMapper, SLOT(map()), Qt::UniqueConnection);
         _buttonsMapper->setMapping(button, button);
-        connect(_buttonsMapper, SIGNAL(mapped(QWidget *)), this, SLOT(processButton(QWidget *)), Qt::UniqueConnection);
+        connect(_buttonsMapper, SIGNAL(mapped(QWidget *)), this, SLOT(processButton(QWidget *)),
+                Qt::UniqueConnection);
     }
 
-    std::cout << Text::blue("[SOCCERVIEW] ", true) + Text::red("Modules connection done.", true) + '\n';
-    
+    std::cout << Text::blue("[SOCCERVIEW] ", true) + Text::red("Modules connection done.", true) +
+                     '\n';
+
     // Connect Send To Discord button
-    connect(ui->sendToDiscord, &QPushButton::released, [this](){
+    connect(ui->sendToDiscord, &QPushButton::released, [this]() {
         QString leftTeamName = ui->leftTeamBox->currentText();
         QString rightTeamName = ui->rightTeamBox->currentText();
         QString leftTeamScore = QString("%1").arg(getLeftTeamGoals());
@@ -242,17 +238,21 @@ void SoccerView::setupButtons() {
 
         QString gameType = getConstants()->gameType(); // quaterfinals, grouph phase, etc.
 
-        QString cmd = QString("/home/ubuntu/vsss results '%1' %2 '%3' %4 --hid %5 --htoken %6").arg(leftTeamName).arg(leftTeamScore).arg(rightTeamName).arg(rightTeamScore).arg(getConstants()->getHID()).arg(getConstants()->getHToken());
+        QString cmd = QString("/home/ubuntu/vsss results '%1' %2 '%3' %4 --hid %5 --htoken %6")
+                          .arg(leftTeamName)
+                          .arg(leftTeamScore)
+                          .arg(rightTeamName)
+                          .arg(rightTeamScore)
+                          .arg(getConstants()->getHID())
+                          .arg(getConstants()->getHToken());
 
         system(cmd.toStdString().c_str());
         ui->sendToDiscord->setEnabled(false);
     });
-    connect(ui->leftTeamBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index){
-        setupTeams();
-    });
-    connect(ui->rightTeamBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index){
-        setupTeams();
-    });
+    connect(ui->leftTeamBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [this](int index) { setupTeams(); });
+    connect(ui->rightTeamBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            [this](int index) { setupTeams(); });
 
     // var
     connect(ui->var, &QPushButton::released, [this]() {
@@ -265,10 +265,11 @@ void SoccerView::setupButtons() {
         QString forBlue = QString("<font color=\"#0000CD\">%1</font>").arg(leftTeamName);
         QString forYellow = QString("<font color=\"#FCEE44\">%1</font>").arg(rightTeamName);
 
-        ui->statusColor->setText(QString("Game is stopped due to VAR for %2.").arg(hasTeamBlue ? forBlue : forYellow));
+        ui->statusColor->setText(
+            QString("Game is stopped due to VAR for %2.").arg(hasTeamBlue ? forBlue : forYellow));
     });
 
-    //timeout
+    // timeout
     connect(ui->timeout, &QPushButton::released, [this]() {
         emit sendManualFoul(VSSRef::Foul::STOP, VSSRef::Color::NONE, VSSRef::Quadrant::NO_QUADRANT);
         bool hasTeamBlue = ui->forBlue->isChecked();
@@ -279,18 +280,19 @@ void SoccerView::setupButtons() {
         QString forBlue = QString("<font color=\"#0000CD\">%1</font>").arg(leftTeamName);
         QString forYellow = QString("<font color=\"#FCEE44\">%1</font>").arg(rightTeamName);
 
-        ui->statusColor->setText(QString("Game is stopped due to TIMEOUT  for %2.").arg(hasTeamBlue ? forBlue : forYellow));
+        ui->statusColor->setText(QString("Game is stopped due to TIMEOUT  for %2.")
+                                     .arg(hasTeamBlue ? forBlue : forYellow));
     });
 }
 
 void SoccerView::animateWidget(QWidget *widget, QColor desiredColor, int animationTime) {
     // Animate widget
-    QVariantAnimation *statusAnimation = new QVariantAnimation(this);
+    auto *statusAnimation = new QVariantAnimation(this);
     statusAnimation->setStartValue(widget->palette().background().color());
     statusAnimation->setEndValue(desiredColor);
     statusAnimation->setDuration(animationTime);
 
-    connect(statusAnimation, &QVariantAnimation::valueChanged, [widget](const QVariant &value){
+    connect(statusAnimation, &QVariantAnimation::valueChanged, [widget](const QVariant &value) {
         QColor colorValue = QColor(value.value<QColor>());
         QString r = QString(std::to_string(colorValue.red()).c_str());
         QString g = QString(std::to_string(colorValue.green()).c_str());
@@ -305,12 +307,12 @@ void SoccerView::animateWidget(QWidget *widget, QColor desiredColor, int animati
 
 void SoccerView::animateFlag(bool toShow, int animationTime) {
     // Enable flag
-    if(toShow) {
+    if (toShow) {
         ui->flag->setVisible(true);
     }
 
     // Animate flag
-    QVariantAnimation *statusAnimation = new QVariantAnimation(this);
+    auto *statusAnimation = new QVariantAnimation(this);
     statusAnimation->setStartValue(toShow ? 0 : 100);
     statusAnimation->setEndValue(toShow ? 100 : 0);
     statusAnimation->setDuration(animationTime);
@@ -318,23 +320,24 @@ void SoccerView::animateFlag(bool toShow, int animationTime) {
     // Take pixmap
     QPixmap flag = QPixmap(":/ui/yellowflag.png");
 
-    connect(statusAnimation, &QVariantAnimation::valueChanged, [this, toShow, flag](const QVariant &value){
-        int alphaPercentage = int(value.value<int>());
+    connect(statusAnimation, &QVariantAnimation::valueChanged,
+            [this, toShow, flag](const QVariant &value) {
+                int alphaPercentage = int(value.value<int>());
 
-        QPixmap res(flag.size());
-        res.fill(Qt::transparent);
-        QPainter painter;
-        painter.begin(&res);
-        painter.setOpacity(alphaPercentage/100.0);
-        painter.drawPixmap(0, 0, flag);
-        painter.end();
+                QPixmap res(flag.size());
+                res.fill(Qt::transparent);
+                QPainter painter;
+                painter.begin(&res);
+                painter.setOpacity(alphaPercentage / 100.0);
+                painter.drawPixmap(0, 0, flag);
+                painter.end();
 
-        ui->flag->setPixmap(res);
+                ui->flag->setPixmap(res);
 
-        if(!toShow && alphaPercentage <= 0.01) {
-            ui->flag->setVisible(false);
-        }
-    });
+                if (!toShow && alphaPercentage <= 0.01) {
+                    ui->flag->setVisible(false);
+                }
+            });
 
     statusAnimation->start(QAbstractAnimation::DeleteWhenStopped);
 }
@@ -343,34 +346,35 @@ void SoccerView::setDarkTheme() {
     this->setStyle(QStyleFactory::create("Fusion"));
 
     QPalette darkPalette;
-    darkPalette.setColor(QPalette::Window,QColor(53,53,53));
-    darkPalette.setColor(QPalette::WindowText,Qt::white);
-    darkPalette.setColor(QPalette::Disabled,QPalette::WindowText,QColor(127,127,127));
-    darkPalette.setColor(QPalette::Base,QColor(42,42,42));
-    darkPalette.setColor(QPalette::AlternateBase,QColor(66,66,66));
-    darkPalette.setColor(QPalette::ToolTipBase,Qt::white);
-    darkPalette.setColor(QPalette::ToolTipText,Qt::white);
-    darkPalette.setColor(QPalette::Text,Qt::white);
-    darkPalette.setColor(QPalette::Disabled,QPalette::Text,QColor(127,127,127));
-    darkPalette.setColor(QPalette::Dark,QColor(35,35,35));
-    darkPalette.setColor(QPalette::Shadow,QColor(20,20,20));
-    darkPalette.setColor(QPalette::Button,QColor(53,53,53));
-    darkPalette.setColor(QPalette::ButtonText,Qt::white);
-    darkPalette.setColor(QPalette::Disabled,QPalette::ButtonText,QColor(127,127,127));
-    darkPalette.setColor(QPalette::BrightText,Qt::red);
-    darkPalette.setColor(QPalette::Link,QColor(42,130,218));
-    darkPalette.setColor(QPalette::Highlight,QColor(42,130,218));
-    darkPalette.setColor(QPalette::Disabled,QPalette::Highlight,QColor(80,80,80));
-    darkPalette.setColor(QPalette::HighlightedText,Qt::white);
-    darkPalette.setColor(QPalette::Disabled,QPalette::HighlightedText,QColor(127,127,127));
+    darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::WindowText, Qt::white);
+    darkPalette.setColor(QPalette::Disabled, QPalette::WindowText, QColor(127, 127, 127));
+    darkPalette.setColor(QPalette::Base, QColor(42, 42, 42));
+    darkPalette.setColor(QPalette::AlternateBase, QColor(66, 66, 66));
+    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
+    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+    darkPalette.setColor(QPalette::Text, Qt::white);
+    darkPalette.setColor(QPalette::Disabled, QPalette::Text, QColor(127, 127, 127));
+    darkPalette.setColor(QPalette::Dark, QColor(35, 35, 35));
+    darkPalette.setColor(QPalette::Shadow, QColor(20, 20, 20));
+    darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    darkPalette.setColor(QPalette::Disabled, QPalette::ButtonText, QColor(127, 127, 127));
+    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::Disabled, QPalette::Highlight, QColor(80, 80, 80));
+    darkPalette.setColor(QPalette::HighlightedText, Qt::white);
+    darkPalette.setColor(QPalette::Disabled, QPalette::HighlightedText, QColor(127, 127, 127));
 
     this->setPalette(darkPalette);
 }
 
-void SoccerView::takeFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant) {
+void SoccerView::takeFoul(VSSRef::Foul foul, VSSRef::Color foulColor,
+                          VSSRef::Quadrant foulQuadrant) {
     // Take color to animate statusBoard and set its text
     QColor desiredColor;
-    if(foul == VSSRef::Foul::GAME_ON) {
+    if (foul == VSSRef::Foul::GAME_ON) {
         desiredColor = QColor(53, 53, 53, 255);
         ui->statusColor->setText("Game is Running");
 
@@ -378,8 +382,7 @@ void SoccerView::takeFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Qu
         ui->startGame->setEnabled(false);
         ui->stopGame->setEnabled(true);
         ui->haltGame->setEnabled(true);
-    }
-    else if(foul == VSSRef::Foul::STOP) {
+    } else if (foul == VSSRef::Foul::STOP) {
         desiredColor = QColor(255, 112, 0, 255);
         ui->statusColor->setText("Game is Stopped");
 
@@ -387,8 +390,7 @@ void SoccerView::takeFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Qu
         ui->startGame->setEnabled(true);
         ui->stopGame->setEnabled(false);
         ui->haltGame->setEnabled(true);
-    }
-    else if(foul == VSSRef::Foul::HALT) {
+    } else if (foul == VSSRef::Foul::HALT) {
         desiredColor = QColor(238, 0, 34, 255);
         ui->statusColor->setText("Game is Halted");
 
@@ -400,17 +402,26 @@ void SoccerView::takeFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Qu
         // Show suggestions
         animateFlag(false, 150);
         showSuggestions();
-    }
-    else {
+    } else {
         desiredColor = QColor(238, 0, 34, 255);
-        if(foulColor != VSSRef::Color::NONE) {
-            QString forBlue = QString("<font color=\"#0000CD\">%1</font>").arg(getConstants()->blueIsLeftSide() ? ui->leftTeamBox->currentText() : ui->rightTeamBox->currentText());
-            QString forYellow = QString("<font color=\"#FCEE44\">%1</font>").arg(getConstants()->blueIsLeftSide() ? ui->rightTeamBox->currentText() : ui->leftTeamBox->currentText());
+        if (foulColor != VSSRef::Color::NONE) {
+            QString forBlue =
+                QString("<font color=\"#0000CD\">%1</font>")
+                    .arg(getConstants()->blueIsLeftSide() ? ui->leftTeamBox->currentText()
+                                                          : ui->rightTeamBox->currentText());
+            QString forYellow =
+                QString("<font color=\"#FCEE44\">%1</font>")
+                    .arg(getConstants()->blueIsLeftSide() ? ui->rightTeamBox->currentText()
+                                                          : ui->leftTeamBox->currentText());
 
-            ui->statusColor->setText(QString("%1 for %2").arg(VSSRef::Foul_Name(foul).c_str()).arg(foulColor == VSSRef::Color::BLUE ? forBlue : forYellow));
-        }
-        else {
-            ui->statusColor->setText(QString("%1 occurred at %2").arg(VSSRef::Foul_Name(foul).c_str()).arg(VSSRef::Quadrant_Name(foulQuadrant).c_str()));
+            ui->statusColor->setText(
+                QString("%1 for %2")
+                    .arg(VSSRef::Foul_Name(foul).c_str())
+                    .arg(foulColor == VSSRef::Color::BLUE ? forBlue : forYellow));
+        } else {
+            ui->statusColor->setText(QString("%1 occurred at %2")
+                                         .arg(VSSRef::Foul_Name(foul).c_str())
+                                         .arg(VSSRef::Quadrant_Name(foulQuadrant).c_str()));
         }
 
         // Disable flag
@@ -419,13 +430,12 @@ void SoccerView::takeFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Qu
 
     // Animate statusboard
     animateWidget(ui->statusColor, desiredColor, 500);
-    
+
     // Animate timer
     // Taking desired color for timer
-    if(foul == VSSRef::Foul::GAME_ON){
+    if (foul == VSSRef::Foul::GAME_ON) {
         desiredColor = QColor(48, 74, 48, 255);
-    }
-    else {
+    } else {
         desiredColor = QColor(238, 0, 34, 255);
     }
 
@@ -434,31 +444,31 @@ void SoccerView::takeFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Qu
 
 void SoccerView::takeTimeStamp(float halftime, float timestamp, VSSRef::Half half, bool isEndGame) {
     // If is penalty shootouts, set infinite time
-    if(half == VSSRef::Half::PENALTY_SHOOTOUTS) {
+    if (half == VSSRef::Half::PENALTY_SHOOTOUTS) {
         ui->halfTime->setText(QString(VSSRef::Half_Name(half).c_str()));
         ui->gameTime->setText("∞");
-        return ;
+        return;
     }
 
     // If is end game
-    if(isEndGame) {
+    if (isEndGame) {
         ui->halfTime->setText(QString("Game ended"));
         ui->gameTime->setText("END");
         ui->refereeSuggestions->setEnabled(false);
         ui->manualReferee->setEnabled(false);
         ui->sendToDiscord->setVisible(true);
-        return ;
+        return;
     }
 
     // Check if timeout is set
-    if(_timeoutSet) {
+    if (_timeoutSet) {
         halftime = getConstants()->timeoutLength();
         timestamp = _timeoutTimestamp;
 
         _timeoutTimestamp += _timeoutTimer.getSeconds();
         _timeoutTimer.start();
 
-        if(_timeoutTimestamp >= halftime) {
+        if (_timeoutTimestamp >= halftime) {
             _timeoutTimestamp = halftime;
 
             // Disable timeout
@@ -466,7 +476,6 @@ void SoccerView::takeTimeStamp(float halftime, float timestamp, VSSRef::Half hal
             emit sendManualFoul(VSSRef::Foul::HALT, VSSRef::Color::NONE, VSSRef::NO_QUADRANT);
         }
     }
-
 
     int min = (halftime - timestamp) / 60.0;
     int sec = (halftime - timestamp) - (min * 60.0);
@@ -482,19 +491,16 @@ void SoccerView::takeTimeStamp(float halftime, float timestamp, VSSRef::Half hal
 }
 
 void SoccerView::addGoal(VSSRef::Color color) {
-    if(color == VSSRef::Color::BLUE) {
-        if(getConstants()->blueIsLeftSide()) {
+    if (color == VSSRef::Color::BLUE) {
+        if (getConstants()->blueIsLeftSide()) {
             _leftTeamGoals++;
-        }
-        else{
+        } else {
             _rightTeamGoals++;
         }
-    }
-    else if(color == VSSRef::Color::YELLOW) {
-        if(!getConstants()->blueIsLeftSide()) {
+    } else if (color == VSSRef::Color::YELLOW) {
+        if (!getConstants()->blueIsLeftSide()) {
             _leftTeamGoals++;
-        }
-        else{
+        } else {
             _rightTeamGoals++;
         }
     }
@@ -503,19 +509,16 @@ void SoccerView::addGoal(VSSRef::Color color) {
 }
 
 void SoccerView::removeGoal(VSSRef::Color color) {
-    if(color == VSSRef::Color::BLUE) {
-        if(getConstants()->blueIsLeftSide()) {
+    if (color == VSSRef::Color::BLUE) {
+        if (getConstants()->blueIsLeftSide()) {
             _leftTeamGoals = std::max(0, _leftTeamGoals - 1);
-        }
-        else{
+        } else {
             _rightTeamGoals = std::max(0, _rightTeamGoals - 1);
         }
-    }
-    else if(color == VSSRef::Color::YELLOW) {
-        if(!getConstants()->blueIsLeftSide()) {
+    } else if (color == VSSRef::Color::YELLOW) {
+        if (!getConstants()->blueIsLeftSide()) {
             _leftTeamGoals = std::max(0, _leftTeamGoals - 1);
-        }
-        else{
+        } else {
             _rightTeamGoals = std::max(0, _rightTeamGoals - 1);
         }
     }
@@ -524,7 +527,7 @@ void SoccerView::removeGoal(VSSRef::Color color) {
 }
 
 void SoccerView::processButton(QWidget *button) {
-    QPushButton *castedButton = static_cast<QPushButton*>(button);
+    auto *castedButton = dynamic_cast<QPushButton *>(button);
 
     // Parsing foul
     VSSRef::Foul calledFoul = VSSRef::Foul();
@@ -532,11 +535,13 @@ void SoccerView::processButton(QWidget *button) {
 
     // Parsing color
     VSSRef::Color calledColor = VSSRef::Color();
-    VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(), &calledColor);
+    VSSRef::Color_Parse(ui->forButtons->checkedButton()->whatsThis().toUpper().toStdString(),
+                        &calledColor);
 
     // Parsing quadrant
     VSSRef::Quadrant calledQuadrant = VSSRef::Quadrant();
-    VSSRef::Quadrant_Parse(ui->quadrantButtons->checkedButton()->whatsThis().toUpper().toStdString(), &calledQuadrant);
+    VSSRef::Quadrant_Parse(
+        ui->quadrantButtons->checkedButton()->whatsThis().toUpper().toStdString(), &calledQuadrant);
 
     // Updating game state buttons
     ui->startGame->setEnabled(false);
@@ -544,43 +549,51 @@ void SoccerView::processButton(QWidget *button) {
     ui->haltGame->setEnabled(true);
 
     // Emit manual foul
-    emit sendManualFoul(calledFoul, (calledFoul == VSSRef::Foul::FREE_BALL) ? VSSRef::Color::NONE : calledColor, (calledFoul != VSSRef::Foul::FREE_BALL) ? VSSRef::Quadrant::NO_QUADRANT : calledQuadrant);
+    emit sendManualFoul(
+        calledFoul, (calledFoul == VSSRef::Foul::FREE_BALL) ? VSSRef::Color::NONE : calledColor,
+        (calledFoul != VSSRef::Foul::FREE_BALL) ? VSSRef::Quadrant::NO_QUADRANT : calledQuadrant);
 }
 
-void SoccerView::addSuggestion(QString suggestion, VSSRef::Color forColor, VSSRef::Quadrant atQuadrant) {
+void SoccerView::addSuggestion(QString suggestion, VSSRef::Color forColor,
+                               VSSRef::Quadrant atQuadrant) {
     // Animate flag
     // animateFlag(true, 150);
 
     // Avoid to add if not using ref suggestions
-    if(!getConstants()->useRefereeSuggestions() && !suggestion.contains("Collision")) return;
+    if (!getConstants()->useRefereeSuggestions() && !suggestion.contains("Collision"))
+        return;
 
     _suggestionsMutex.lock();
 
     int qtWidgets = _widgets.size() / 2;
 
     // Creating label
-    QString forSuggestionName = QString("%1 for <font color=\"%2\">%3</font>").arg(suggestion).arg((forColor == VSSRef::Color::BLUE) ? "#1E90FF" : "#FCEE44").arg(VSSRef::Color_Name(forColor).c_str());
-    QLabel *label = new QLabel((forColor != VSSRef::Color::NONE) ? forSuggestionName : suggestion);
+    QString forSuggestionName = QString("%1 for <font color=\"%2\">%3</font>")
+                                    .arg(suggestion)
+                                    .arg((forColor == VSSRef::Color::BLUE) ? "#1E90FF" : "#FCEE44")
+                                    .arg(VSSRef::Color_Name(forColor).c_str());
+    auto *label = new QLabel((forColor != VSSRef::Color::NONE) ? forSuggestionName : suggestion);
     label->setWhatsThis(suggestion);
     label->setVisible(false);
 
     _widgets.push_back(label);
     ui->suggestionGrid->addWidget(label, qtWidgets, 0, Qt::AlignCenter);
 
-    QPushButton *accept = new QPushButton("Accept");
-    connect(accept, &QPushButton::released, [this, forColor, atQuadrant, label](){
-        if(label->whatsThis().contains("Collision")) {
+    auto *accept = new QPushButton("Accept");
+    connect(accept, &QPushButton::released, [this, forColor, atQuadrant, label]() {
+        if (label->whatsThis().contains("Collision")) {
             emit sendCollisionDecision();
-        }
-        else if(label->whatsThis() == "GOAL") {
+        } else if (label->whatsThis() == "GOAL") {
             addGoal(forColor);
-            emit sendManualFoul(VSSRef::Foul::KICKOFF, (forColor == VSSRef::Color::BLUE) ? VSSRef::Color::YELLOW : VSSRef::Color::BLUE, VSSRef::Quadrant::NO_QUADRANT);
-        }
-        else if(label->whatsThis() == "GAME_ON"){
+            emit sendManualFoul(VSSRef::Foul::KICKOFF,
+                                (forColor == VSSRef::Color::BLUE) ? VSSRef::Color::YELLOW
+                                                                  : VSSRef::Color::BLUE,
+                                VSSRef::Quadrant::NO_QUADRANT);
+        } else if (label->whatsThis() == "GAME_ON") {
             printf("Estou aqui no GAME ON");
-            emit sendManualFoul(VSSRef::Foul::GAME_ON, VSSRef::Color::NONE, VSSRef::Quadrant::NO_QUADRANT);
-        }
-        else {
+            emit sendManualFoul(VSSRef::Foul::GAME_ON, VSSRef::Color::NONE,
+                                VSSRef::Quadrant::NO_QUADRANT);
+        } else {
             VSSRef::Foul suggestedFoul = VSSRef::Foul();
             VSSRef::Foul_Parse(label->whatsThis().toStdString(), &suggestedFoul);
 
@@ -602,8 +615,7 @@ void SoccerView::addSuggestion(QString suggestion, VSSRef::Color forColor, VSSRe
 void SoccerView::showSuggestions() {
     _suggestionsMutex.lock();
 
-    for(int i = 0; i < _widgets.size(); i++) {
-        QWidget *widget = _widgets.at(i);
+    for (auto widget : _widgets) {
         widget->setVisible(true);
     }
 
@@ -613,8 +625,7 @@ void SoccerView::showSuggestions() {
 void SoccerView::deleteSuggestions() {
     _suggestionsMutex.lock();
 
-    for(int i = 0; i < _widgets.size(); i++) {
-        QWidget *widget = _widgets.at(i);
+    for (auto widget : _widgets) {
         ui->suggestionGrid->removeWidget(widget);
 
         delete widget;
@@ -624,11 +635,11 @@ void SoccerView::deleteSuggestions() {
     _suggestionsMutex.unlock();
 }
 
-Constants* SoccerView::getConstants() {
-    if(_constants == nullptr) {
-        std::cout << Text::red("[ERROR] ", true) << Text::bold("Constants with nullptr value at SoccerView") + '\n';
-    }
-    else {
+Constants *SoccerView::getConstants() {
+    if (_constants == nullptr) {
+        std::cout << Text::red("[ERROR] ", true)
+                  << Text::bold("Constants with nullptr value at SoccerView") + '\n';
+    } else {
         return _constants;
     }
 

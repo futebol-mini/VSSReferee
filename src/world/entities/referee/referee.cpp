@@ -9,44 +9,47 @@
 #include <include/vssref_command.pb.h>
 #include <src/soccerview/soccerview.h>
 
-Referee::Referee(Vision *vision, Replacer *replacer, SoccerView *soccerView, Constants *constants) : Entity(ENT_REFEREE) {
+Referee::Referee(Vision *vision, Replacer *replacer, SoccerView *soccerView, Constants *constants)
+    : Entity(ENT_REFEREE), _constants(constants), _isFIRAVision(getConstants()->isFIRAVision()),
+      _mapper(new QSignalMapper()), _refereePort(getConstants()->refereePort()),
+      _replacer(replacer), _soccerView(soccerView), _vision(vision) {
     // Take vision pointer
-    _vision = vision;
 
     // Take replacer pointer
-    _replacer = replacer;
 
     // Take SoccerView
-    _soccerView = soccerView;
 
     // Take constants
-    _constants = constants;
 
     // Taking network data
     _refereeAddress = getConstants()->refereeAddress();
-    _refereePort = getConstants()->refereePort();
-    _isFIRAVision = getConstants()->isFIRAVision();
 
     // Connecting referee to replacer
     connect(_replacer, SIGNAL(teamsPlaced()), this, SLOT(teamsPlaced()));
-    connect(_replacer, SIGNAL(teamsCollided(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool)), this, SLOT(processCollision(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool)));
+    connect(_replacer, SIGNAL(teamsCollided(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool)),
+            this, SLOT(processCollision(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant, bool)));
     connect(_soccerView, SIGNAL(sendTeleport(bool)), _replacer, SLOT(takeTeleport(bool)));
-    connect(this, SIGNAL(sendFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant)), _replacer, SLOT(takeFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant)));
-    connect(this, SIGNAL(callReplacer(bool, bool)), _replacer, SLOT(placeTeams(bool, bool)), Qt::DirectConnection);
+    connect(this, SIGNAL(sendFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant)), _replacer,
+            SLOT(takeFoul(VSSRef::Foul, VSSRef::Color, VSSRef::Quadrant)));
+    connect(this, SIGNAL(callReplacer(bool, bool)), _replacer, SLOT(placeTeams(bool, bool)),
+            Qt::DirectConnection);
     connect(this, SIGNAL(saveFrame()), _replacer, SLOT(saveFrameAndBall()), Qt::DirectConnection);
-    connect(this, SIGNAL(placeFrame()), _replacer, SLOT(placeLastFrameAndBall()), Qt::DirectConnection);
-    connect(this, SIGNAL(placeBall(Position, Velocity)), _replacer, SLOT(placeBall(Position, Velocity)), Qt::DirectConnection);
-    connect(this, SIGNAL(emitSuggestion(QString, VSSRef::Color, VSSRef::Quadrant)), _soccerView, SLOT(addSuggestion(QString, VSSRef::Color, VSSRef::Quadrant)));
+    connect(this, SIGNAL(placeFrame()), _replacer, SLOT(placeLastFrameAndBall()),
+            Qt::DirectConnection);
+    connect(this, SIGNAL(placeBall(Position, Velocity)), _replacer,
+            SLOT(placeBall(Position, Velocity)), Qt::DirectConnection);
+    connect(this, SIGNAL(emitSuggestion(QString, VSSRef::Color, VSSRef::Quadrant)), _soccerView,
+            SLOT(addSuggestion(QString, VSSRef::Color, VSSRef::Quadrant)));
 
     // Init signal mapper
-    _mapper = new QSignalMapper();
 }
 
 void Referee::initialization() {
     // Adding checkers
     // Stucked ball
     addChecker(_stuckedBallChecker = new Checker_StuckedBall(_vision, getConstants()), 0);
-    connect(_stuckedBallChecker, SIGNAL(sendStuckedTime(float)), this, SLOT(takeStuckedTime(float)));
+    connect(_stuckedBallChecker, SIGNAL(sendStuckedTime(float)), this,
+            SLOT(takeStuckedTime(float)));
     _stuckedBallChecker->setIsPenaltyShootout(false, VSSRef::Color::NONE);
 
     // Two attackers
@@ -57,15 +60,19 @@ void Referee::initialization() {
 
     // Ball play
     addChecker(_ballPlayChecker = new Checker_BallPlay(_vision, getConstants()), 2);
-    connect(_ballPlayChecker, SIGNAL(emitGoal(VSSRef::Color)), _soccerView, SLOT(addGoal(VSSRef::Color)), Qt::DirectConnection);
-    connect(_ballPlayChecker, SIGNAL(emitGoal(VSSRef::Color)), this, SLOT(goalOccurred(VSSRef::Color)), Qt::DirectConnection);
-    connect(_ballPlayChecker, SIGNAL(emitSuggestion(QString, VSSRef::Color, VSSRef::Quadrant)), _soccerView, SLOT(addSuggestion(QString, VSSRef::Color, VSSRef::Quadrant)));
+    connect(_ballPlayChecker, SIGNAL(emitGoal(VSSRef::Color)), _soccerView,
+            SLOT(addGoal(VSSRef::Color)), Qt::DirectConnection);
+    connect(_ballPlayChecker, SIGNAL(emitGoal(VSSRef::Color)), this,
+            SLOT(goalOccurred(VSSRef::Color)), Qt::DirectConnection);
+    connect(_ballPlayChecker, SIGNAL(emitSuggestion(QString, VSSRef::Color, VSSRef::Quadrant)),
+            _soccerView, SLOT(addSuggestion(QString, VSSRef::Color, VSSRef::Quadrant)));
     _ballPlayChecker->setAtkDefCheckers(_twoAtkChecker, _twoDefChecker);
     _ballPlayChecker->setIsPenaltyShootout(false, VSSRef::Color::NONE);
 
     // Goalie
     _goalieChecker = new Checker_Goalie(_vision, getConstants());
-    connect(_goalieChecker, SIGNAL(updateGoalie(VSSRef::Color, quint8)), _replacer, SLOT(takeGoalie(VSSRef::Color, quint8)));
+    connect(_goalieChecker, SIGNAL(updateGoalie(VSSRef::Color, quint8)), _replacer,
+            SLOT(takeGoalie(VSSRef::Color, quint8)));
     addChecker(_goalieChecker, 0);
 
     // HalfTime
@@ -73,7 +80,8 @@ void Referee::initialization() {
     _halfChecker->setReferee(this);
     _halfChecker->setIsPenaltyShootout(false);
     connect(_halfChecker, SIGNAL(halfPassed()), this, SLOT(halfPassed()));
-    connect(_soccerView, SIGNAL(addTime(int)), _halfChecker, SLOT(receiveTime(int)), Qt::DirectConnection);
+    connect(_soccerView, SIGNAL(addTime(int)), _halfChecker, SLOT(receiveTime(int)),
+            Qt::DirectConnection);
 
     // Set default initial state
     _gameHalf = VSSRef::NO_HALF;
@@ -94,7 +102,10 @@ void Referee::initialization() {
     connectClient();
 
     // Debug network info
-    std::cout << Text::blue("[REFEREE] ", true) + Text::bold("Module started at address '" + _refereeAddress.toStdString() + "' and port '" + std::to_string(_refereePort) + "'.") + '\n';
+    std::cout << Text::blue("[REFEREE] ", true) +
+                     Text::bold("Module started at address '" + _refereeAddress.toStdString() +
+                                "' and port '" + std::to_string(_refereePort) + "'.") +
+                     '\n';
 
     // Call check collision
     // checkIfTeamsAreColliding();
@@ -108,34 +119,36 @@ void Referee::loop() {
     _halfChecker->run();
 
     // Send timestamp
-    emit sendTimestamp((_halfChecker->isOvertime() ? getConstants()->overtimeHalfTime() : getConstants()->halfTime()), _halfChecker->getTimeStamp(), _gameHalf, _isEndGame);
+    emit sendTimestamp((_halfChecker->isOvertime() ? getConstants()->overtimeHalfTime()
+                                                   : getConstants()->halfTime()),
+                       _halfChecker->getTimeStamp(), _gameHalf, _isEndGame);
 
     // Game halted just return
-    if(_gameHalted) {
+    if (_gameHalted) {
         emit placeBall(_lastBallPosition, Velocity(true, 0.0, 0.0));
-        return ;
+        return;
     }
 
     // In long stop, check if timer has passed the defined time
-    if(_longStop) {
+    if (_longStop) {
         _transitionTimer.stop();
 
-        if(_transitionTimer.getSeconds() >= (60 * getConstants()->transitionTime())) {
+        if (_transitionTimer.getSeconds() >= (60 * getConstants()->transitionTime())) {
             resetTransitionVars();
 
             // Check if last foul is stop
-            if(_lastFoul == VSSRef::Foul::STOP) {
+            if (_lastFoul == VSSRef::Foul::STOP) {
                 // Set isStopped as true (avoid double stop)
                 _isStopped = true;
             }
 
             sendPenaltiesToNetwork();
         }
-        return ;
+        return;
     }
 
     // If game is on, run all checks
-    if(_lastFoul == VSSRef::Foul::GAME_ON) {
+    if (_lastFoul == VSSRef::Foul::GAME_ON) {
         _checkerMutex.lock();
 
         // Take list of registered priorities
@@ -145,14 +158,12 @@ void Referee::loop() {
         // Sort from higher to lower priority
         std::sort(priorityKeys.begin(), priorityKeys.end(), std::greater<int>());
 
-        for(it = priorityKeys.begin(); it != priorityKeys.end(); it++) {
+        for (it = priorityKeys.begin(); it != priorityKeys.end(); it++) {
             // Take fouls with priority (*it)
-            QVector<Checker*> *checkers = _checkers.value((*it));
+            QVector<Checker *> *checkers = _checkers.value((*it));
 
-            for(int i = 0; i < checkers->size(); i++) {
+            for (auto atChecker : *checkers) {
                 // Take foul
-                Checker *atChecker = checkers->at(i);
-
                 // Run it
                 atChecker->run();
             }
@@ -165,8 +176,8 @@ void Referee::loop() {
     }
     // Else if game is not on, wait, go to stop and set game on again
     else {
-        if(!_isStopped) {
-            if(!_resetedTimer) {
+        if (!_isStopped) {
+            if (!_resetedTimer) {
                 _transitionTimer.start();
                 _resetedTimer = true;
             }
@@ -178,7 +189,8 @@ void Referee::loop() {
             _transitionMutex.unlock();
 
             // Transition time
-            float transitionTime = (_goalOccurred) ? 2.0 * getConstants()->transitionTime() : getConstants()->transitionTime();
+            float transitionTime = (_goalOccurred) ? 2.0 * getConstants()->transitionTime()
+                                                   : getConstants()->transitionTime();
 
             // Check if passed transition time
             if(_transitionTimer.getSeconds() >= transitionTime/* || (teamsPlaced && _transitionTimer.getSeconds() >= (getConstants()->transitionTime() / 2.0))*/) {
@@ -187,20 +199,20 @@ void Referee::loop() {
                 _resetedTimer = false;
 
                 // Call replacer (place teams)
-                if(_isFIRAVision){
+                if (_isFIRAVision) {
                     emit callReplacer(_forceDefault, _isToPlaceOutside);
                     _forceDefault = false;
                     _isToPlaceOutside = false;
                 }
 
                 // Update sent foul to STOP
-                updatePenaltiesInfo(VSSRef::Foul::STOP, VSSRef::Color::NONE, VSSRef::Quadrant::NO_QUADRANT);
+                updatePenaltiesInfo(VSSRef::Foul::STOP, VSSRef::Color::NONE,
+                                    VSSRef::Quadrant::NO_QUADRANT);
                 sendPenaltiesToNetwork();
                 _wait = true;
             }
-        }
-        else {
-            if(!_resetedTimer) {
+        } else {
+            if (!_resetedTimer) {
                 _transitionTimer.start();
                 _resetedTimer = true;
             }
@@ -211,10 +223,11 @@ void Referee::loop() {
             _transitionTimer.stop();
 
             // Check if passed transition time
-            if(_wait) {
+            if (_wait) {
                 // Update sent foul to GAME_ON
 
-                updatePenaltiesInfo(VSSRef::Foul::HALT, VSSRef::Color::NONE, VSSRef::Quadrant::NO_QUADRANT);
+                updatePenaltiesInfo(VSSRef::Foul::HALT, VSSRef::Color::NONE,
+                                    VSSRef::Quadrant::NO_QUADRANT);
                 emit emitSuggestion("GAME_ON");
                 _wait = false;
                 // sendPenaltiesToNetwork();
@@ -234,7 +247,8 @@ void Referee::finalization() {
 }
 
 bool Referee::isGameOn() {
-    return (_lastFoul == VSSRef::Foul::GAME_ON && !_gameHalted && !_longStop && !_isPenaltyShootout);
+    return (_lastFoul == VSSRef::Foul::GAME_ON && !_gameHalted && !_longStop &&
+            !_isPenaltyShootout);
 }
 
 void Referee::connectClient() {
@@ -242,12 +256,13 @@ void Referee::connectClient() {
     _refereeClient = new QUdpSocket();
 
     // Close if already opened
-    if(_refereeClient->isOpen()) {
+    if (_refereeClient->isOpen()) {
         _refereeClient->close();
     }
 
     // Connect to referee address and port
-    _refereeClient->connectToHost(_refereeAddress, _refereePort, QIODevice::WriteOnly, QAbstractSocket::IPv4Protocol);
+    _refereeClient->connectToHost(_refereeAddress, _refereePort, QIODevice::WriteOnly,
+                                  QAbstractSocket::IPv4Protocol);
 
     // Set multicast options
     _refereeClient->setSocketOption(QAbstractSocket::MulticastTtlOption, 1);
@@ -256,7 +271,7 @@ void Referee::connectClient() {
 
 void Referee::disconnectClient() {
     // Close referee client
-    if(_refereeClient->isOpen()) {
+    if (_refereeClient->isOpen()) {
         _refereeClient->close();
     }
 
@@ -266,20 +281,21 @@ void Referee::disconnectClient() {
 
 void Referee::addChecker(Checker *checker, int priority) {
     // Check if priority already exists in hash
-    if(!_checkers.contains(priority)) {
+    if (!_checkers.contains(priority)) {
         // Create it
-        _checkers.insert(priority, new QVector<Checker*>());
+        _checkers.insert(priority, new QVector<Checker *>());
     }
 
     // Taking Foul vector
-    QVector<Checker*> *checkerVector = _checkers.value(priority);
+    QVector<Checker *> *checkerVector = _checkers.value(priority);
 
     // Check if foul is already added
-    if(!checkerVector->contains(checker)) {
+    if (!checkerVector->contains(checker)) {
         // Connect in map
         connect(checker, SIGNAL(foulOccured()), _mapper, SLOT(map()), Qt::UniqueConnection);
         _mapper->setMapping(checker, checker);
-        connect(_mapper, SIGNAL(mapped(QObject *)), this, SLOT(processChecker(QObject *)), Qt::UniqueConnection);
+        connect(_mapper, SIGNAL(mapped(QObject *)), this, SLOT(processChecker(QObject *)),
+                Qt::UniqueConnection);
 
         // Call configure method
         checker->configure();
@@ -293,10 +309,9 @@ void Referee::resetCheckers() {
     // For each check, call configure() (reset it)
     QList<int> priorityKeys = _checkers.keys();
     QList<int>::iterator it;
-    for(it = priorityKeys.begin(); it != priorityKeys.end(); it++) {
-        QVector<Checker*> *fouls = _checkers.value((*it));
-        for(int i = 0; i < fouls->size(); i++) {
-            Checker *atFoul = fouls->at(i);
+    for (it = priorityKeys.begin(); it != priorityKeys.end(); it++) {
+        QVector<Checker *> *fouls = _checkers.value((*it));
+        for (auto atFoul : *fouls) {
             atFoul->configure();
         }
     }
@@ -306,10 +321,9 @@ void Referee::deleteCheckers() {
     QList<int> priorityKeys = _checkers.keys();
     QList<int>::iterator it;
 
-    for(it = priorityKeys.begin(); it != priorityKeys.end(); it++) {
-        QVector<Checker*> *fouls = _checkers.take((*it));
-        for(int i = 0; i < fouls->size(); i++) {
-            Checker *atFoul = fouls->at(i);
+    for (it = priorityKeys.begin(); it != priorityKeys.end(); it++) {
+        QVector<Checker *> *fouls = _checkers.take((*it));
+        for (auto atFoul : *fouls) {
             delete atFoul;
         }
     }
@@ -325,31 +339,40 @@ void Referee::resetTransitionVars() {
 }
 
 void Referee::checkIfTeamsAreColliding() {
-    std::cout << Text::yellow("[VSSReferee] ", true) + Text::bold("Checking collisions with teams placements.\n");
+    std::cout << Text::yellow("[VSSReferee] ", true) +
+                     Text::bold("Checking collisions with teams placements.\n");
 
-    for(int i = VSSRef::PENALTY_KICK; i <= VSSRef::KICKOFF; i++) {
-        if(VSSRef::Foul(i) == VSSRef::Foul::FREE_BALL) {
-            for(int j = VSSRef::QUADRANT_1; j <= VSSRef::QUADRANT_4; j++) {
-                std::cout << Text::yellow("[VSSReferee] ", true) + Text::bold("Sending FREE_BALL in " + VSSRef::Quadrant_Name(VSSRef::Quadrant(j)) + '\n');
+    for (int i = VSSRef::PENALTY_KICK; i <= VSSRef::KICKOFF; i++) {
+        if (VSSRef::Foul(i) == VSSRef::Foul::FREE_BALL) {
+            for (int j = VSSRef::QUADRANT_1; j <= VSSRef::QUADRANT_4; j++) {
+                std::cout << Text::yellow("[VSSReferee] ", true) +
+                                 Text::bold("Sending FREE_BALL in " +
+                                            VSSRef::Quadrant_Name(VSSRef::Quadrant(j)) + '\n');
                 updatePenaltiesInfo(VSSRef::Foul(i), VSSRef::Color::NONE, VSSRef::Quadrant(j));
                 sendPenaltiesToNetwork();
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                if(_isFIRAVision) emit callReplacer(false, false);
+                if (_isFIRAVision)
+                    emit callReplacer(false, false);
             }
-        }
-        else {
-            for(int j = VSSRef::Color::BLUE; j <= VSSRef::Color::YELLOW; j++) {
-                std::cout << Text::yellow("[VSSReferee] ", true) + Text::bold("Sending " + VSSRef::Foul_Name(VSSRef::Foul(i)) + "to team " + VSSRef::Color_Name(VSSRef::Color(j)) + '\n');
-                updatePenaltiesInfo(VSSRef::Foul(i), VSSRef::Color(j), VSSRef::Quadrant::NO_QUADRANT);
+        } else {
+            for (int j = VSSRef::Color::BLUE; j <= VSSRef::Color::YELLOW; j++) {
+                std::cout << Text::yellow("[VSSReferee] ", true) +
+                                 Text::bold("Sending " + VSSRef::Foul_Name(VSSRef::Foul(i)) +
+                                            "to team " + VSSRef::Color_Name(VSSRef::Color(j)) +
+                                            '\n');
+                updatePenaltiesInfo(VSSRef::Foul(i), VSSRef::Color(j),
+                                    VSSRef::Quadrant::NO_QUADRANT);
                 sendPenaltiesToNetwork();
                 std::this_thread::sleep_for(std::chrono::milliseconds(200));
-                if(_isFIRAVision) emit callReplacer(false, false);
+                if (_isFIRAVision)
+                    emit callReplacer(false, false);
             }
         }
     }
 }
 
-void Referee::updatePenaltiesInfo(VSSRef::Foul foul, VSSRef::Color foulTeam, VSSRef::Quadrant foulQuadrant, bool isManual) {
+void Referee::updatePenaltiesInfo(VSSRef::Foul foul, VSSRef::Color foulTeam,
+                                  VSSRef::Quadrant foulQuadrant, bool isManual) {
     // Update info
     _foulMutex.lock();
     _lastFoul = foul;
@@ -358,7 +381,7 @@ void Referee::updatePenaltiesInfo(VSSRef::Foul foul, VSSRef::Color foulTeam, VSS
     _foulMutex.unlock();
 
     // Reset transition vars
-    if(isManual) {
+    if (isManual) {
         resetTransitionVars();
     }
 }
@@ -388,13 +411,22 @@ void Referee::sendPenaltiesToNetwork() {
 
     // Send via socket
     for (int i = 0; i < MAX_PACKETS; i++) {
-        if(_refereeClient->write(datagram.c_str(), static_cast<quint64>(datagram.length())) == -1) {
-            std::cout << Text::cyan("[REFEREE] ", true) + Text::red("Failed to write to socket.", true) + '\n';
+        if (_refereeClient->write(datagram.c_str(), static_cast<quint64>(datagram.length())) ==
+            -1) {
+            std::cout << Text::cyan("[REFEREE] ", true) +
+                             Text::red("Failed to write to socket.", true) + '\n';
         }
     }
 
     // Debug sent foul
-    std::cout << Text::blue("[REFEREE] ", true) + Text::yellow("[" + VSSRef::Half_Name(_gameHalf) + ":" + std::to_string(_halfChecker->getTimeStamp()) + "] ", true) + Text::bold("Sent command '" + VSSRef::Foul_Name(_lastFoul) + "' for team '" + VSSRef::Color_Name(_lastFoulTeam) + "' at quadrant '" + VSSRef::Quadrant_Name(_lastFoulQuadrant)) + "'\n";
+    std::cout << Text::blue("[REFEREE] ", true) +
+                     Text::yellow("[" + VSSRef::Half_Name(_gameHalf) + ":" +
+                                      std::to_string(_halfChecker->getTimeStamp()) + "] ",
+                                  true) +
+                     Text::bold("Sent command '" + VSSRef::Foul_Name(_lastFoul) + "' for team '" +
+                                VSSRef::Color_Name(_lastFoulTeam) + "' at quadrant '" +
+                                VSSRef::Quadrant_Name(_lastFoulQuadrant)) +
+                     "'\n";
 
     // Send foul
     emit sendFoul(foul, team, quadrant);
@@ -405,28 +437,31 @@ void Referee::sendPenaltiesToNetwork() {
 
 void Referee::processChecker(QObject *checker) {
     _checkerMutex.lock();
-    Checker *occurredChecker = static_cast<Checker*>(checker);
+    auto *occurredChecker = dynamic_cast<Checker *>(checker);
 
-    if(occurredChecker->penalty() == VSSRef::Foul::HALT) {
+    if (occurredChecker->penalty() == VSSRef::Foul::HALT) {
         sendControlFoul(occurredChecker->penalty());
         _gameHalted = true;
-        return ;
+        return;
     }
 
     // In penaltyShootout, only hear commands from checker ball play
-    if(_isPenaltyShootout && !(occurredChecker->name() == "Checker_BallPlay" || occurredChecker->name() == "Checker_StuckedBall")) {
-        return ;
-    }
-    else if(_isPenaltyShootout && (occurredChecker->name() == "Checker_BallPlay" || occurredChecker->name() == "Checker_StuckedBall")){
+    if (_isPenaltyShootout && !(occurredChecker->name() == "Checker_BallPlay" ||
+                                occurredChecker->name() == "Checker_StuckedBall")) {
+        return;
+    } else if (_isPenaltyShootout && (occurredChecker->name() == "Checker_BallPlay" ||
+                                      occurredChecker->name() == "Checker_StuckedBall")) {
         // Send penalty foul to place outside
-        takeManualFoul(occurredChecker->penalty(), occurredChecker->teamColor(), VSSRef::NO_QUADRANT, true);
+        takeManualFoul(occurredChecker->penalty(), occurredChecker->teamColor(),
+                       VSSRef::NO_QUADRANT, true);
         _ballPlayChecker->setIsPenaltyShootout(true, occurredChecker->teamColor());
         _stuckedBallChecker->setIsPenaltyShootout(true, occurredChecker->teamColor());
-        return ;
+        return;
     }
 
     emit saveFrame();
-    updatePenaltiesInfo(occurredChecker->penalty(), occurredChecker->teamColor(), occurredChecker->quadrant());
+    updatePenaltiesInfo(occurredChecker->penalty(), occurredChecker->teamColor(),
+                        occurredChecker->quadrant());
     sendPenaltiesToNetwork();
     _checkerMutex.unlock();
 }
@@ -434,30 +469,30 @@ void Referee::processChecker(QObject *checker) {
 void Referee::halfPassed() {
     // Check actual half
     // If has at second half, check if is needed to go to overtime
-    if(_gameHalf == VSSRef::Half::SECOND_HALF) {
+    if (_gameHalf == VSSRef::Half::SECOND_HALF) {
         // If eq goals (go to overtime)
-        if((_soccerView->getLeftTeamGoals() == _soccerView->getRightTeamGoals()) && (_soccerView->getStage().toLower() != "group_phase" && !_soccerView->getStage().toLower().contains("rodada"))) {
+        if ((_soccerView->getLeftTeamGoals() == _soccerView->getRightTeamGoals()) &&
+            (_soccerView->getStage().toLower() != "group_phase" &&
+             !_soccerView->getStage().toLower().contains("rodada"))) {
             _halfChecker->setIsOvertime(true);
-        }
-        else {
+        } else {
             // halt game (end game)
             sendControlFoul(VSSRef::Foul::HALT);
             _gameHalted = true;
             _isEndGame = true;
-            return ;
+            return;
         }
     }
     // If has at end of overtime, check if is need to go to penalty shootouts
-    else if(_gameHalf == VSSRef::Half::OVERTIME_SECOND_HALF) {
+    else if (_gameHalf == VSSRef::Half::OVERTIME_SECOND_HALF) {
         // If not eq goals (not go to penalty shootouts)
-        if((_soccerView->getLeftTeamGoals() != _soccerView->getRightTeamGoals())) {
+        if ((_soccerView->getLeftTeamGoals() != _soccerView->getRightTeamGoals())) {
             // halt game (end game)
             sendControlFoul(VSSRef::Foul::HALT);
             _gameHalted = true;
             _isEndGame = true;
-            return ;
-        }
-        else {
+            return;
+        } else {
             // Set halftime checker to penalty shootout
             _halfChecker->setIsPenaltyShootout(true);
             _isPenaltyShootout = true;
@@ -469,14 +504,16 @@ void Referee::halfPassed() {
     _gameHalf = VSSRef::Half(half);
     int kickoff = ((_halfKickoff + 1) % 2);
     _halfKickoff = VSSRef::Color(kickoff);
-    std::cout << Text::blue("[REFEREE] ", true) + Text::bold("Half passed, now at " + VSSRef::Half_Name(_gameHalf)) + '\n';
+    std::cout << Text::blue("[REFEREE] ", true) +
+                     Text::bold("Half passed, now at " + VSSRef::Half_Name(_gameHalf)) + '\n';
 
     // If is penalty shootout, set penalty kick for one team
-    if(_gameHalf == VSSRef::Half::PENALTY_SHOOTOUTS) {
-        takeManualFoul(VSSRef::Foul::PENALTY_KICK, _halfKickoff, VSSRef::Quadrant::NO_QUADRANT, true);
+    if (_gameHalf == VSSRef::Half::PENALTY_SHOOTOUTS) {
+        takeManualFoul(VSSRef::Foul::PENALTY_KICK, _halfKickoff, VSSRef::Quadrant::NO_QUADRANT,
+                       true);
         _ballPlayChecker->setIsPenaltyShootout(true, _halfKickoff);
         _stuckedBallChecker->setIsPenaltyShootout(true, _halfKickoff);
-        return ;
+        return;
     }
     // If not is penalty shootout, call kickoff normally
     else {
@@ -495,9 +532,7 @@ void Referee::teamsPlaced() {
     _transitionMutex.unlock();
 }
 
-void Referee::goalOccurred(VSSRef::Color) {
-    _goalOccurred = true;
-}
+void Referee::goalOccurred(VSSRef::Color) { _goalOccurred = true; }
 
 void Referee::sendControlFoul(VSSRef::Foul foul) {
     // Take copy of last foul
@@ -506,12 +541,13 @@ void Referee::sendControlFoul(VSSRef::Foul foul) {
     VSSRef::Color lastFoulTeam = _lastFoulTeam;
 
     // If foul is halt
-    if(foul == VSSRef::Foul::HALT) {
+    if (foul == VSSRef::Foul::HALT) {
         // Take ball last data (before stopping)
         _placedLast = false;
         _lastBallPosition = _vision->getBallPosition();
         _lastBallVelocity = _vision->getBallVelocity();
-        if(getConstants()->maintainSpeedAtSuggestions()) emit saveFrame();
+        if (getConstants()->maintainSpeedAtSuggestions())
+            emit saveFrame();
     }
 
     // Update penalties info
@@ -524,39 +560,39 @@ void Referee::sendControlFoul(VSSRef::Foul foul) {
     updatePenaltiesInfo(lastFoul, lastFoulTeam, lastFoulQuadrant, true);
 }
 
-void Referee::takeManualFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant, bool isToPlaceOutside) {
+void Referee::takeManualFoul(VSSRef::Foul foul, VSSRef::Color foulColor,
+                             VSSRef::Quadrant foulQuadrant, bool isToPlaceOutside) {
     printf("%d\n", foul);
-    if(foul == VSSRef::Foul::GAME_ON) {
+    if (foul == VSSRef::Foul::GAME_ON) {
         // Reset transitions vars
         resetTransitionVars();
 
         // Check if last foul is stop
-        if(_lastFoul == VSSRef::Foul::STOP) {
+        if (_lastFoul == VSSRef::Foul::STOP) {
             // Set isStopped as true (avoid double stop)
             _isStopped = true;
         }
 
-        if(!_placedLast) {
-            if(getConstants()->maintainSpeedAtSuggestions()) emit placeFrame();
+        if (!_placedLast) {
+            if (getConstants()->maintainSpeedAtSuggestions())
+                emit placeFrame();
             _placedLast = true;
         }
 
         // Re-send last penalties to network
 
-        updatePenaltiesInfo(VSSRef::Foul::GAME_ON, VSSRef::Color::NONE, VSSRef::Quadrant::NO_QUADRANT);
+        updatePenaltiesInfo(VSSRef::Foul::GAME_ON, VSSRef::Color::NONE,
+                            VSSRef::Quadrant::NO_QUADRANT);
         sendPenaltiesToNetwork();
-    }
-    else if(foul == VSSRef::Foul::HALT) {
+    } else if (foul == VSSRef::Foul::HALT) {
         // Call halt
         sendControlFoul(foul);
         _gameHalted = true;
-    }
-    else if(foul == VSSRef::Foul::STOP) {
+    } else if (foul == VSSRef::Foul::STOP) {
         // Call long stop
         sendControlFoul(foul);
         _longStop = true;
-    }
-    else {
+    } else {
         // Update penalties info
         updatePenaltiesInfo(foul, foulColor, foulQuadrant, true);
 
@@ -568,11 +604,10 @@ void Referee::takeManualFoul(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef:
     }
 }
 
-void Referee::takeStuckedTime(float time) {
-    _soccerView->getFieldView()->setStuckedTime(time);
-}
+void Referee::takeStuckedTime(float time) { _soccerView->getFieldView()->setStuckedTime(time); }
 
-void Referee::processCollision(VSSRef::Foul foul, VSSRef::Color foulColor, VSSRef::Quadrant foulQuadrant, bool isToPlaceOutside)  {
+void Referee::processCollision(VSSRef::Foul foul, VSSRef::Color foulColor,
+                               VSSRef::Quadrant foulQuadrant, bool isToPlaceOutside) {
     // Call halt
     sendControlFoul(VSSRef::Foul::HALT);
     _gameHalted = true;
@@ -598,17 +633,15 @@ void Referee::processCollisionDecision() {
     _forceDefault = true;
 }
 
-Constants* Referee::getConstants() {
-    if(_constants == nullptr) {
-        std::cout << Text::red("[ERROR] ", true) << Text::bold("Constants with nullptr value at Referee") + '\n';
-    }
-    else {
+Constants *Referee::getConstants() {
+    if (_constants == nullptr) {
+        std::cout << Text::red("[ERROR] ", true)
+                  << Text::bold("Constants with nullptr value at Referee") + '\n';
+    } else {
         return _constants;
     }
 
     return nullptr;
 }
 
-void Referee::visionPacketChanged(bool isFIRAVision) {
-    _isFIRAVision = isFIRAVision;
-}
+void Referee::visionPacketChanged(bool isFIRAVision) { _isFIRAVision = isFIRAVision; }

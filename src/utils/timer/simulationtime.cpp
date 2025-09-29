@@ -23,12 +23,10 @@ std::shared_ptr<SimulationTime> SimulationTime::GetInstance() {
 
 void SimulationTime::update(uint64_t time_step) {
 
-    std::cout << Text::green("[SimulationTime] Got step ", true) << time_step
-              << '\n';
+    std::cout << Text::green("[SimulationTime] Got step ", true) << time_step << '\n';
 
     if (time_step < this->last_time_step_) {
-        std::cout << Text::red("[SimulationTime] Got date from the past", true)
-                  << '\n';
+        std::cout << Text::red("[SimulationTime] Got date from the past", true) << '\n';
 
         // Reeived time from the past
         this->last_time_step_ = time_step;

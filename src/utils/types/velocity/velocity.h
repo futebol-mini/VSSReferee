@@ -3,9 +3,8 @@
 
 #include <math.h>
 
-class Velocity
-{
-public:
+class Velocity {
+  public:
     Velocity();
     Velocity(bool isValid, float vx, float vy);
 
@@ -20,11 +19,11 @@ public:
     float abs() const;
     float arg() const;
 
-private:
+  private:
     // Params
-    bool _isValid;
-    float _vx;
-    float _vy;
+    bool _isValid{};
+    float _vx{};
+    float _vy{};
 };
 
 #endif // VELOCITY_H
